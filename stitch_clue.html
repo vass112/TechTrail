@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Morse Clue Display - TechTrail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2bee6c",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<!-- Main Container -->
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto border-x border-primary/10">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 pt-6">
+<button class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<div class="text-center">
+<h1 class="text-xs uppercase tracking-[0.2em] text-primary/70 font-bold">TechTrail Event</h1>
+<h2 class="text-lg font-bold leading-tight">Clue Detail</h2>
+</div>
+<button class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">info</span>
+</button>
+</header>
+<!-- Progress Indicator -->
+<div class="flex flex-col items-center gap-3 py-4">
+<p class="text-[10px] uppercase tracking-widest text-primary/60 font-mono">Sequence Progress</p>
+<div class="flex flex-row items-center justify-center gap-3">
+<div class="h-1.5 w-6 rounded-full bg-primary"></div>
+<div class="h-1.5 w-6 rounded-full bg-primary"></div>
+<div class="h-2 w-10 rounded-full bg-primary shadow-[0_0_10px_rgba(43,238,108,0.5)]"></div>
+<div class="h-1.5 w-6 rounded-full bg-primary/20"></div>
+<div class="h-1.5 w-6 rounded-full bg-primary/20"></div>
+</div>
+<span class="text-sm font-mono text-primary italic">Clue #3 of 5</span>
+</div>
+<!-- Main Content: Morse Code Display -->
+<main class="flex-1 flex flex-col items-center justify-center px-6 gap-8">
+<div class="w-full bg-primary/5 border border-primary/20 rounded-xl p-8 flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Decorative Grid Background -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle, #2bee6c 1px, transparent 1px); background-size: 20px 20px;"></div>
+<div class="relative z-10 flex flex-col items-center gap-6">
+<span class="text-xs font-mono uppercase tracking-[0.3em] text-primary/50">Encoded Signal</span>
+<div class="flex flex-wrap justify-center gap-4 text-primary">
+<h2 class="tracking-widest text-4xl md:text-5xl font-bold font-mono text-center break-all">
+                            .-.. --- --- -.- ...
+                        </h2>
+</div>
+<div class="h-px w-24 bg-primary/30"></div>
+<p class="text-xs text-center text-slate-400 font-mono max-w-[200px]">
+                        Scan the perimeter of the Engineering Hall to locate the next node.
+                    </p>
+</div>
+</div>
+<!-- Action Area -->
+<div class="w-full flex flex-col gap-4">
+<button class="group relative flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-16 bg-primary text-background-dark gap-3 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-2xl font-bold">graphic_eq</span>
+<span class="text-lg font-bold uppercase tracking-wider">Play Morse Audio</span>
+</button>
+<div class="flex gap-3">
+<button class="flex-1 flex items-center justify-center gap-2 h-12 border border-primary/30 rounded-lg bg-primary/5 text-primary/80 hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-xl">help_outline</span>
+<span class="text-sm font-bold">Hint</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-2 h-12 border border-slate-700/50 rounded-lg bg-slate-800/20 text-slate-500 hover:text-slate-300 transition-colors">
+<span class="material-symbols-outlined text-xl">visibility_off</span>
+<span class="text-sm font-bold">Reveal Text</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Spacer for visual balance -->
+<div class="h-12"></div>
+<!-- Bottom Navigation Bar -->
+<nav class="mt-auto border-t border-primary/10 bg-background-dark/80 backdrop-blur-md px-4 pb-8 pt-3">
+<div class="flex justify-around items-end">
+<a class="flex flex-col items-center gap-1 text-primary/50 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<p class="text-[10px] font-medium tracking-wide uppercase">Map</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary/50 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<p class="text-[10px] font-medium tracking-wide uppercase">Scan</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<div class="relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">flag</span>
+<div class="absolute -top-1 -right-1 size-2 rounded-full bg-primary animate-pulse"></div>
+</div>
+<p class="text-[10px] font-bold tracking-wide uppercase">Clues</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary/50 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<p class="text-[10px] font-medium tracking-wide uppercase">Profile</p>
+</a>
+</div>
+</nav>
+<!-- Background Image Element (Map Theme) -->
+<div class="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none">
+<img class="w-full h-full object-cover grayscale" data-alt="Technical blueprint map of a college campus" data-location="University Campus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD83L7XZgauODuI4f8aAm54WkgUtbqGWVxkCc8VAy8eO82RLosLUoqfkuNBDibF9OtvKKJEW9QUDQh1F1pYGYQWF-s8sYWP_Is95s3FZpuswbe_HT6H5y5jnEJ6b-tjvrVcQ4YXRj9GowozqbTIUcwh9Y-tUru9OHslBZ5HNoQ5SKoI77EHzy_wkDU92lfloq00f1vFMPi8sIsBLRVZilGmym_Qk4p8RgY5oCb-V1KOdAEnRn-WDzfcQLJJn0qMP6ooJBxU6rjif5vC"/>
+</div>
+</div>
+</body></html>

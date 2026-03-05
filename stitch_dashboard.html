@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TechTrail Red Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff3b30",
+                        "background-light": "#fef2f2",
+                        "background-dark": "#0f0101",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .neo-shadow {
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.3);
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-primary/20">
+<div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined">menu</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display uppercase tracking-wider">TechTrail</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto pb-24">
+<div class="px-6 pt-8 pb-6 flex flex-col items-center">
+<div class="relative size-48 flex items-center justify-center">
+<svg class="absolute size-full -rotate-90">
+<circle class="text-primary/10" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.9" stroke-dashoffset="348.3" stroke-width="8"></circle>
+</svg>
+<div class="text-center">
+<h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-4xl font-bold leading-none">3/8</h1>
+<p class="text-primary text-sm font-medium uppercase tracking-widest mt-1">Clues Found</p>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-6 mb-8">
+<div class="flex gap-6 justify-between items-end">
+<p class="text-slate-900 dark:text-slate-100 text-base font-medium leading-normal">Overall Campaign Progress</p>
+<p class="text-primary text-sm font-bold leading-normal">37%</p>
+</div>
+<div class="rounded-full bg-primary/20 h-3 w-full overflow-hidden">
+<div class="h-full rounded-full bg-primary neo-shadow" style="width: 37%;"></div>
+</div>
+</div>
+<div class="px-6 py-4">
+<button class="w-full flex cursor-pointer items-center justify-center rounded-xl h-16 bg-primary text-white gap-3 text-lg font-bold leading-normal tracking-wide neo-shadow active:scale-95 transition-transform">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span>SCAN NEXT QR CODE</span>
+</button>
+</div>
+<div class="mx-6 mt-4 p-4 rounded-xl bg-primary/5 border border-primary/20">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-sm">terminal</span>
+<span class="text-xs font-bold text-primary uppercase tracking-widest">Active Clue Hint</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 text-sm font-mono tracking-tighter">
+                ..- -. -.. . .-. / - .... . / --- .- -.-
+            </p>
+<p class="text-slate-500 dark:text-slate-400 text-xs mt-2 italic">"Where the oldest shadows fall at noon..."</p>
+</div>
+<div class="px-6 py-8">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold mb-4 font-display">Your Discoveries</h3>
+<div class="grid grid-cols-1 gap-3">
+<div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-900/40 border border-primary/30 shadow-sm">
+<div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">history_edu</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-slate-100 font-bold text-sm">The Founders Plaza</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">Unlocked at 10:45 AM</p>
+</div>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-900/40 border border-primary/30 shadow-sm">
+<div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">science</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-slate-100 font-bold text-sm">Main Bio-Lab Entry</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">Unlocked at 11:12 AM</p>
+</div>
+<span class="material-symbols-outlined text-primary">check_circle</span>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 opacity-60">
+<div class="size-12 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-slate-100 font-bold text-sm">Clue #4</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">Awaiting Discovery</p>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 mb-12">
+<div class="p-5 rounded-2xl bg-slate-900 border border-primary/10">
+<h4 class="text-primary font-bold mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined">info</span>
+                    How to Play
+                </h4>
+<ul class="space-y-3 text-sm text-slate-300">
+<li class="flex gap-3">
+<span class="text-primary font-bold">01</span>
+<span>Find the hidden QR codes across campus using the Morse hints.</span>
+</li>
+<li class="flex gap-3">
+<span class="text-primary font-bold">02</span>
+<span>Scan them to unlock the next part of the trail and earn points.</span>
+</li>
+<li class="flex gap-3">
+<span class="text-primary font-bold">03</span>
+<span>Complete all 8 clues to finish the TechTrail and enter the prize draw!</span>
+</li>
+</ul>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 w-full flex flex-col bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-primary/20">
+<div class="flex gap-2 bg-background-light dark:bg-background-dark px-4 pb-6 pt-2">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">home</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">qr_code_2</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Scan</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">map</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Map</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">leaderboard</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Rank</p>
+</a>
+</div>
+</nav>
+
+</body></html>

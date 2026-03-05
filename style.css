@@ -1,0 +1,69 @@
+/* Core View Logic */
+.view {
+    display: none !important;
+}
+
+.view.active {
+    display: flex !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.view.active {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Specific elements that Tailwind doesn't easily cover out of the box */
+.neo-shadow {
+    box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
+}
+
+.text-shadow {
+    text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);
+}
+
+.scan-line {
+    height: 2px;
+    background: linear-gradient(to right, transparent, #ff3b30, transparent);
+    box-shadow: 0 0 15px #ff3b30;
+}
+
+/* QR code HTML5 library overrides */
+#qr-reader video {
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important;
+}
+
+#qr-reader {
+    border: none !important;
+}
+
+#qr-reader__scan_region {
+    background: transparent !important;
+}
+
+#qr-reader__dashboard_section_csr span {
+    color: #ff3b30 !important;
+}
+
+#qr-reader__dashboard_section_swaplink {
+    color: #ff3b30 !important;
+    text-decoration: underline;
+}
+
+button {
+    touch-action: manipulation;
+}

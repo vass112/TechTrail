@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TechTrail - College Treasure Hunt</title>
+    <meta name="theme-color" content="#102216">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff3b30",
+                        "background-light": "#fef2f2",
+                        "background-dark": "#0f0101",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
+    <div id="app"
+        class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto border-x border-primary/10 bg-background-light dark:bg-background-dark">
+
+        <!-- Login View -->
+        <section id="view-login" class="view active h-full w-full flex-col justify-center px-8 relative">
+            <div class="absolute inset-0 z-0 bg-slate-800"></div>
+            <div
+                class="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000')] bg-cover bg-center opacity-10">
+            </div>
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-background-dark via-background-dark/80 to-background-dark z-0">
+            </div>
+
+            <div class="relative z-10 w-full mb-12 text-center">
+                <h1 class="text-primary font-display font-bold text-5xl tracking-widest mb-2 shadow-primary">TECHTRAIL
+                </h1>
+                <p class="text-primary/70 font-mono text-sm tracking-[0.2em] uppercase">Authentication Node</p>
+            </div>
+
+            <div class="relative z-10 w-full space-y-4">
+                <div
+                    class="bg-black/40 p-1 border border-primary/30 rounded-xl shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <input type="text" id="login-team" placeholder="TEAM ID"
+                        class="w-full bg-transparent border-none text-primary placeholder-primary/30 font-mono text-lg p-4 focus:ring-0 text-center uppercase">
+                </div>
+                <div
+                    class="bg-black/40 p-1 border border-primary/30 rounded-xl shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <input type="password" id="login-password" placeholder="PASSPHRASE"
+                        class="w-full bg-transparent border-none text-primary placeholder-primary/30 font-mono text-lg p-4 focus:ring-0 text-center">
+                </div>
+                <button id="btn-login"
+                    class="w-full h-16 mt-6 bg-primary text-background-dark font-bold text-xl tracking-widest rounded-xl neo-shadow active:scale-95 transition-transform">
+                    INITIALIZE
+                </button>
+                <p id="login-error" class="text-red-500 font-bold text-sm text-center h-6 mt-2"></p>
+            </div>
+        </section>
+
+        <!-- Home View -->
+        <section id="view-home" class="view h-full w-full flex-col">
+            <header
+                class="flex items-center p-4 pb-2 justify-between sticky top-0 z-10 border-b border-primary/20 bg-background-light dark:bg-background-dark">
+                <div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-start">
+                    <span class="material-symbols-outlined">menu</span>
+                </div>
+                <h2
+                    class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display uppercase tracking-wider">
+                    TechTrail</h2>
+                <div class="flex w-12 items-center justify-end">
+                    <button id="go-admin"
+                        class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                    </button>
+                </div>
+            </header>
+            <main class="flex-1 overflow-y-auto pb-6">
+                <div class="px-6 pt-8 pb-6 flex flex-col items-center">
+                    <div class="relative size-48 flex items-center justify-center">
+                        <svg class="absolute size-full -rotate-90">
+                            <circle class="text-primary/10" cx="96" cy="96" fill="transparent" r="88"
+                                stroke="currentColor" stroke-width="8"></circle>
+                            <circle class="text-primary" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor"
+                                stroke-dasharray="552.9" stroke-dashoffset="348.3" stroke-width="8"></circle>
+                        </svg>
+                        <div class="text-center">
+                            <h1
+                                class="text-slate-900 dark:text-slate-100 tracking-tight text-4xl font-bold leading-none">
+                                <span id="clues-solved">0</span>/8
+                            </h1>
+                            <p class="text-primary text-sm font-medium uppercase tracking-widest mt-1">Clues Found</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4">
+                    <button id="btn-start"
+                        class="w-full flex cursor-pointer items-center justify-center rounded-xl h-16 bg-primary text-background-dark gap-3 text-lg font-bold leading-normal tracking-wide neo-shadow active:scale-95 transition-transform"
+                        data-target="view-scanner">
+                        <span class="material-symbols-outlined font-bold">qr_code_scanner</span>
+                        <span>START HUNT</span>
+                    </button>
+                    <button id="btn-resume"
+                        class="w-full flex mt-4 cursor-pointer items-center justify-center rounded-xl h-16 border border-primary text-primary gap-3 text-lg font-bold leading-normal tracking-wide active:scale-95 transition-transform"
+                        style="display:none;" data-target="view-scanner">
+                        <span class="material-symbols-outlined font-bold">play_arrow</span>
+                        <span>RESUME HUNT</span>
+                    </button>
+                </div>
+                <div class="px-6 mb-12">
+                    <div
+                        class="p-5 rounded-2xl bg-black/40 border border-primary/10 shadow-[inset_0_0_20px_rgba(0,0,0,0.4)]">
+                        <h4 class="text-primary font-bold mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined">info</span> How to Play
+                        </h4>
+                        <ul class="space-y-3 text-sm text-slate-300">
+                            <li class="flex gap-3"><span class="text-primary font-bold">01</span><span>Find hidden QR
+                                    codes across campus using Morse hints.</span></li>
+                            <li class="flex gap-3"><span class="text-primary font-bold">02</span><span>Scan them to
+                                    unlock the next part of the trail.</span></li>
+                            <li class="flex gap-3"><span class="text-primary font-bold">03</span><span>Complete all 8
+                                    clues to finish the TechTrail!</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </main>
+        </section>
+
+        <!-- Scanner View -->
+        <section id="view-scanner" class="view h-full w-full flex-col relative">
+            <div class="absolute inset-0 z-0 bg-slate-800"></div>
+            <div
+                class="relative z-10 flex items-center px-4 py-6 justify-between bg-gradient-to-b from-background-dark/90 to-transparent">
+                <button
+                    class="flex size-10 shrink-0 items-center justify-center rounded-full bg-background-dark/60 backdrop-blur-md text-primary btn-back hover:bg-background-dark transition-colors border border-primary/20"
+                    data-target="view-home">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h2 class="text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 text-center">TechTrail
+                    Scanner</h2>
+                <div class="flex size-10 items-center justify-end rounded-full bg-transparent text-primary"></div>
+            </div>
+            <main
+                class="relative z-10 flex flex-1 flex-col items-center justify-center p-6 bg-background-dark/40 backdrop-blur-sm">
+                <div class="relative w-full aspect-square max-w-[320px]">
+                    <div
+                        class="absolute -top-2 -left-2 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-xl z-20">
+                    </div>
+                    <div
+                        class="absolute -top-2 -right-2 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-xl z-20">
+                    </div>
+                    <div
+                        class="absolute -bottom-2 -left-2 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-xl z-20">
+                    </div>
+                    <div
+                        class="absolute -bottom-2 -right-2 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-xl z-20">
+                    </div>
+
+                    <div class="absolute inset-0 rounded-lg overflow-hidden flex items-center justify-center bg-black shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] z-10"
+                        id="qr-reader">
+                        <!-- QR reader goes here -->
+                    </div>
+                </div>
+                <div class="mt-8 text-center space-y-2 max-w-[280px]">
+                    <p class="text-slate-100 text-xl font-bold tracking-tight">Align QR Code</p>
+                    <p class="text-slate-400 text-sm">Target the location marker to decrypt the next Morse clue.</p>
+                    <p id="scanner-error" class="text-red-500 font-bold h-6 text-sm"></p>
+                </div>
+            </main>
+            <div class="relative z-10 px-4 pb-8 bg-gradient-to-t from-background-dark/90 to-background-dark/0 pt-8">
+                <div
+                    class="flex flex-col items-start gap-4 rounded-xl border border-primary/30 bg-background-dark/80 backdrop-blur-xl p-5 mb-2 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+                    <div class="flex items-center gap-3">
+                        <div class="flex size-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
+                            <span class="material-symbols-outlined text-xl">lightbulb</span>
+                        </div>
+                        <p class="text-slate-100 text-base font-bold">Quick Tip</p>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed">Scan the QR code at your current location to
+                        unlock the next <span class="text-primary font-mono">Morse clue</span>.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Clue View -->
+        <section id="view-clue" class="view h-full w-full flex-col">
+            <header class="flex items-center justify-between p-4 pt-6 border-b border-primary/10">
+                <button
+                    class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary btn-back hover:bg-primary/20 transition-colors"
+                    data-target="view-home">
+                    <span class="material-symbols-outlined">home</span>
+                </button>
+                <div class="text-center">
+                    <h1 class="text-xs uppercase tracking-[0.2em] text-primary/70 font-bold">TechTrail Event</h1>
+                    <h2 class="text-lg font-bold leading-tight text-white shadow-primary" id="clue-id-display">CLUE
+                        UNLOCKED</h2>
+                </div>
+                <div class="size-10"></div>
+            </header>
+            <main class="flex-1 flex flex-col items-center justify-center px-6 gap-8 pb-8 overflow-y-auto">
+                <div
+                    class="w-full bg-primary/5 border border-primary/20 rounded-xl p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-[inset_0_0_30px_rgba(255,59,48,0.05)]">
+                    <div class="absolute inset-0 opacity-10 pointer-events-none"
+                        style="background-image: radial-gradient(circle, #ff3b30 1px, transparent 1px); background-size: 20px 20px;">
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center gap-6">
+                        <span class="text-xs font-mono uppercase tracking-[0.3em] text-primary/50">Encoded Signal</span>
+                        <div class="flex flex-wrap justify-center gap-4 text-primary">
+                            <h2 id="morse-display"
+                                class="tracking-widest text-4xl md:text-5xl font-bold font-mono text-center break-all text-shadow">
+                                ... --- ...
+                            </h2>
+                        </div>
+                        <div class="h-px w-24 bg-primary/30"></div>
+                        <p class="text-xs text-center text-slate-400 font-mono max-w-[200px]">
+                            Translate this sequence to locate the next node.
+                        </p>
+                    </div>
+                </div>
+                <div class="w-full flex flex-col gap-4">
+                    <button id="btn-play-audio"
+                        class="group relative flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-16 bg-primary text-background-dark gap-3 transition-all active:scale-[0.98] neo-shadow">
+                        <span class="material-symbols-outlined text-2xl font-bold">graphic_eq</span>
+                        <span class="text-lg font-bold uppercase tracking-wider">PLAY MORSE AUDIO</span>
+                    </button>
+                    <button id="btn-next-clue"
+                        class="flex w-full mt-2 cursor-pointer items-center justify-center rounded-xl h-14 border border-primary text-primary font-bold active:bg-primary/10 transition-colors"
+                        data-target="view-scanner">
+                        SCAN NEXT CODE
+                    </button>
+                </div>
+            </main>
+        </section>
+
+        <!-- Admin View -->
+        <section id="view-admin" class="view h-full w-full flex-col bg-background-dark">
+            <header
+                class="flex items-center justify-between p-4 pt-6 border-b border-primary/20 bg-background-light dark:bg-background-dark">
+                <button
+                    class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary btn-back hover:bg-primary/20 transition-colors"
+                    data-target="view-home">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <div class="text-center">
+                    <h1 class="text-xs uppercase tracking-[0.2em] text-primary/70 font-bold">Super Secret</h1>
+                    <h2 class="text-lg font-bold leading-tight">Admin Dashboard</h2>
+                </div>
+                <div class="size-10"></div>
+            </header>
+            <main class="flex-1 overflow-y-auto flex flex-col gap-6 p-6">
+                <!-- LEADERBOARD TAB -->
+                <div
+                    class="bg-black/30 p-4 rounded-xl border border-primary/20 shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <h3 class="text-primary font-bold mb-3 flex items-center justify-between">
+                        <span class="flex items-center gap-2"><span class="material-symbols-outlined">leaderboard</span>
+                            Leaderboard</span>
+                        <button id="btn-refresh-leaderboard" class="text-primary/70 hover:text-primary"><span
+                                class="material-symbols-outlined">refresh</span></button>
+                    </h3>
+                    <div id="leaderboard-container" class="space-y-2 max-h-40 overflow-y-auto pr-2">
+                        <div class="text-center text-primary/50 text-sm py-4">Loading teams...</div>
+                    </div>
+                </div>
+
+                <!-- TEAMS TAB -->
+                <div
+                    class="bg-black/30 p-4 rounded-xl border border-primary/20 shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <h3 class="text-primary font-bold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined">group_add</span> Create Team
+                    </h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-team-name"
+                            class="w-1/2 bg-black/60 border border-primary/30 rounded-lg p-2 text-sm text-primary placeholder-primary/40 focus:outline-none"
+                            placeholder="Team Name">
+                        <input type="text" id="new-team-pass"
+                            class="w-1/2 bg-black/60 border border-primary/30 rounded-lg p-2 text-sm text-primary placeholder-primary/40 focus:outline-none"
+                            placeholder="Password">
+                    </div>
+                    <button id="btn-create-team"
+                        class="mt-3 w-full bg-primary/20 text-primary border border-primary px-4 py-2 rounded-lg font-bold active:scale-95 transition-transform text-sm">Add
+                        Team</button>
+                    <p id="team-create-msg" class="text-primary/80 text-xs mt-2 text-center h-4"></p>
+                </div>
+
+                <div
+                    class="bg-black/30 p-4 rounded-xl border border-primary/20 shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <h3 class="text-primary font-bold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined">edit_note</span> Clues Data (JSON)
+                    </h3>
+                    <textarea id="clue-editor-textarea"
+                        class="w-full h-40 bg-black/60 border border-primary/30 rounded-lg p-3 text-sm font-mono text-primary focus:outline-none focus:border-primary"></textarea>
+                    <button id="btn-save-clues"
+                        class="mt-3 w-full bg-primary/20 text-primary border border-primary px-4 py-3 rounded-lg font-bold active:scale-95 transition-transform">Save
+                        Clues</button>
+                </div>
+                <div
+                    class="bg-black/30 p-4 rounded-xl border border-red-500/30 shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <h3 class="text-red-500 font-bold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined">warning</span> Danger Zone
+                    </h3>
+                    <button id="btn-reset-progress"
+                        class="w-full bg-red-500/20 text-red-500 border border-red-500 px-4 py-3 rounded-lg font-bold active:scale-95 transition-transform hover:bg-red-500/30">RESET
+                        ALL PROGRESS</button>
+                </div>
+                <div
+                    class="bg-black/30 p-4 rounded-xl border border-primary/20 shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <h3 class="text-primary font-bold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined">qr_code</span> QR Code Generator
+                    </h3>
+                    <div class="flex flex-col gap-4">
+                        <div id="qr-clue-list" class="flex flex-wrap gap-2 mb-2">
+                            <!-- Clue selection buttons will be injected here -->
+                        </div>
+                        <div id="qrcode-container"
+                            class="flex flex-col items-center justify-center bg-white p-4 rounded-lg hidden">
+                            <div id="qrcode"></div>
+                            <p id="qr-label" class="text-black font-bold mt-2 text-sm uppercase font-mono"></p>
+                        </div>
+                        <button id="btn-download-qr"
+                            class="hidden w-full bg-primary/20 text-primary border border-primary px-4 py-3 rounded-lg font-bold active:scale-95 transition-transform hover:bg-primary/30">Download
+                            QR Code</button>
+                    </div>
+                </div>
+
+                <div <input type="text" id="morse-preview-input"
+                    class="w-full bg-black/60 border border-primary/30 rounded-lg p-3 mb-3 text-primary placeholder-primary/40 focus:outline-none focus:border-primary"
+                    placeholder="Enter text to translate">
+                    <div class="bg-black/50 p-4 rounded-lg mb-3 border border-primary/10">
+                        <div id="morse-preview-output" class="text-xl font-mono text-primary min-h-8 break-all"></div>
+                    </div>
+                    <button id="btn-preview-audio"
+                        class="w-full bg-primary/20 text-primary border border-primary px-4 py-3 rounded-lg font-bold active:scale-95 transition-transform hover:bg-primary/30">Play
+                        Preview Audio</button>
+                </div>
+            </main>
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="morse.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
