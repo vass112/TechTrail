@@ -10,6 +10,25 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCCbWAnX9mm2vVtzbCX9zkVS6unSi_MQ30",
+            authDomain: "techtrail-1857e.firebaseapp.com",
+            projectId: "techtrail-1857e",
+            storageBucket: "techtrail-1857e.firebasestorage.app",
+            messagingSenderId: "273832751733",
+            appId: "1:273832751733:web:a928e750a6ac2e961afe3c",
+            measurementId: "G-VSSCE6FW6F"
+        };
+        firebase.initializeApp(firebaseConfig);
+        window.auth = firebase.auth();
+        window.googleProvider = new firebase.auth.GoogleAuthProvider();
+    </script>
+
 
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
