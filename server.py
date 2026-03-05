@@ -4,7 +4,7 @@ import http.server
 import socketserver
 from urllib.parse import urlparse, parse_qs
 
-PORT = 8000
+PORT = int(os.environ.get('PORT', 8000))
 DATABASE_FILE = "database.json"
 DIRECTORY = "."
 
