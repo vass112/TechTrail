@@ -117,12 +117,11 @@ function initUI() {
     document.getElementById('btn-start').addEventListener('click', () => switchView('view-scanner'));
     document.getElementById('btn-resume').addEventListener('click', () => switchView('view-scanner'));
 
-    // Admin Panel Actions
-    document.getElementById('go-admin').addEventListener('click', () => {
-        refreshLeaderboard();
-        initQRGenerator();
-        document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
-        switchView('view-admin');
+    // Logout
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        if (confirm("Sign out of TechTrail?")) {
+            window.auth.signOut();
+        }
     });
 
     document.getElementById('btn-save-clues').addEventListener('click', () => {
