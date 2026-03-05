@@ -1,7 +1,7 @@
 // Main Application Logic
 // Set this to your Render.com URL after deployment (e.g., https://techtrail-api.onrender.com)
 // If empty, it defaults to the local server
-const PRODUCTION_API_URL = '';
+const PRODUCTION_API_URL = 'https://techtrail-dspl.onrender.com';
 const API_BASE = PRODUCTION_API_URL ? `${PRODUCTION_API_URL}/api` : '/api';
 
 let html5QrcodeScanner = null;
