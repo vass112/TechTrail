@@ -1,35 +1,45 @@
-// Main Application Logic
+// Main Application Logic - Local-Only Version
 let html5QrcodeScanner = null;
 let currentTeam = null;
-let currentClueId = null;
 let solvedClues = [];
-let localCluesCache = {};
 
-// Helper to check if Firebase is initialized
-const getDB = () => window.db;
+// Local Storage Keys
+const STORAGE_KEYS = {
+    CLUES: 'techtrail_clues',
+    PROGRESS: 'techtrail_progress', // { team: '', solved: [] }
+    TEAMS: 'techtrail_teams_db' // Admin local team creator { name: pass }
+};
+
+// Default Clues if none in storage
+const DEFAULT_CLUES = {
+    "CLUE1": "WELCOME TO TECHTRAIL. PROCEED TO THE OLD OAK TREE.",
+    "CLUE2": "THE GEARS OF PROGRESS TURN IN THE MAIN HALLWAY.",
+    "CLUE3": "KNOWLEDGE IS POWER. VISIT THE LIBRARY ENTRANCE.",
+    "CLUE4": "THE FINAL CHALLENGE AWAITS AT THE NORTH GATE."
+};
+
+let localCluesCache = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLUES)) || DEFAULT_CLUES;
 
 document.addEventListener('DOMContentLoaded', () => {
     initUI();
-    // Wait a bit for Firebase to initialize from index.html script
-    setTimeout(fetchClues, 500);
+    loadProgress();
 });
 
-async function fetchClues() {
-    const db = getDB();
-    if (!db) {
-        console.warn("Firebase not initialized. Use local defaults if needed.");
-        return;
+function loadProgress() {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESS));
+    if (saved && saved.team) {
+        currentTeam = saved.team;
+        solvedClues = saved.solved || [];
+        updateProgressUI();
+        switchView('view-home');
     }
-    try {
-        const snapshot = await db.collection('clues').get();
-        localCluesCache = {};
-        snapshot.forEach(doc => {
-            localCluesCache[doc.id] = doc.data().text;
-        });
-        initQRGenerator();
-    } catch (e) {
-        console.error("Failed to load clues from Firestore", e);
-    }
+}
+
+function saveProgress() {
+    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify({
+        team: currentTeam,
+        solved: solvedClues
+    }));
 }
 
 function initUI() {
@@ -44,7 +54,7 @@ function initUI() {
     });
 
     // Login logic
-    document.getElementById('btn-login').addEventListener('click', async () => {
+    document.getElementById('btn-login').addEventListener('click', () => {
         const team = document.getElementById('login-team').value.trim().toUpperCase();
         const password = document.getElementById('login-password').value.trim();
         const errEl = document.getElementById('login-error');
@@ -54,36 +64,20 @@ function initUI() {
             return;
         }
 
-        if (!getDB()) {
-            errEl.innerText = "FIREBASE NOT EXECUTED";
-            return;
+        // Special Admin check
+        if (team === "ADMIN" && password === "ananthan") {
+            refreshLeaderboard();
+            document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
+            switchView('view-admin');
+        } else {
+            // Check local "Teams DB" if any, or just allow any team (since this is 100% local now)
+            // For a better experience, we'll just "register" the team on this device.
+            currentTeam = team;
+            solvedClues = [];
+            saveProgress();
+            updateProgressUI();
+            switchView('view-home');
         }
-
-        const btn = document.getElementById('btn-login');
-        btn.innerText = "AUTHENTICATING...";
-
-        try {
-            // Special Admin check
-            if (team === "ADMIN" && password === "ananthan") {
-                refreshLeaderboard();
-                document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
-                switchView('view-admin');
-            } else {
-                const doc = await getDB().collection('teams').doc(team).get();
-                if (doc.exists && doc.data().password === password) {
-                    currentTeam = team;
-                    solvedClues = doc.data().solved || [];
-                    updateProgressUI();
-                    switchView('view-home');
-                } else {
-                    errEl.innerText = "ACCESS DENIED";
-                }
-            }
-        } catch (e) {
-            errEl.innerText = "AUTH ERROR";
-            console.error(e);
-        }
-        btn.innerText = "INITIALIZE";
     });
 
     // Scanner Triggers
@@ -115,68 +109,29 @@ function initUI() {
 
     document.getElementById('btn-refresh-leaderboard').addEventListener('click', refreshLeaderboard);
 
-    document.getElementById('btn-create-team').addEventListener('click', async () => {
-        const team = document.getElementById('new-team-name').value.trim().toUpperCase();
-        const password = document.getElementById('new-team-pass').value.trim();
-        const msg = document.getElementById('team-create-msg');
-
-        if (!team || !password) {
-            msg.innerText = "Fill all fields"; return;
-        }
-
-        try {
-            await getDB().collection('teams').doc(team).set({
-                password: password,
-                solved: []
-            });
-            msg.innerText = "Team Created!";
-            document.getElementById('new-team-name').value = '';
-            document.getElementById('new-team-pass').value = '';
-            refreshLeaderboard();
-        } catch (e) {
-            msg.innerText = "Error creating team";
-        }
-        setTimeout(() => msg.innerText = "", 3000);
+    document.getElementById('btn-create-team').addEventListener('click', () => {
+        alert("In Local-Only mode, teams are registered directly upon login on their own devices.");
     });
 
-    document.getElementById('btn-save-clues').addEventListener('click', async () => {
+    document.getElementById('btn-save-clues').addEventListener('click', () => {
         try {
             const parsed = JSON.parse(document.getElementById('clue-editor-textarea').value);
-            const batch = getDB().batch();
-
-            // Delete old clues? For simplicity, we just set the new ones.
-            // In a real app, you might want to clear the collection first.
-            for (const [id, text] of Object.entries(parsed)) {
-                const ref = getDB().collection('clues').doc(id);
-                batch.set(ref, { text: text });
-            }
-
-            await batch.commit();
-            alert('Global Clues Updated!');
-            fetchClues();
+            localCluesCache = parsed;
+            localStorage.setItem(STORAGE_KEYS.CLUES, JSON.stringify(parsed));
+            alert('Settings Updated!');
+            initQRGenerator();
         } catch (e) {
-            alert('Error updating clues or invalid JSON!');
-            console.error(e);
+            alert('Invalid JSON format!');
         }
     });
 
-    document.getElementById('btn-reset-progress').addEventListener('click', async () => {
-        if (confirm('DANGER: Reset progress for ALL teams globally?')) {
-            try {
-                const snapshot = await getDB().collection('teams').get();
-                const batch = getDB().batch();
-                snapshot.forEach(doc => {
-                    batch.update(doc.ref, { solved: [] });
-                });
-                await batch.commit();
-
-                if (currentTeam) solvedClues = [];
-                updateProgressUI();
-                refreshLeaderboard();
-                alert('Global Progress Reset.');
-            } catch (e) {
-                alert('Reset failed.');
-            }
+    document.getElementById('btn-reset-progress').addEventListener('click', () => {
+        if (confirm('DANGER: Reset progress for THIS device?')) {
+            localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+            solvedClues = [];
+            currentTeam = null;
+            updateProgressUI();
+            location.reload();
         }
     });
 
@@ -251,57 +206,19 @@ function updateProgressUI() {
     }
 }
 
-async function refreshLeaderboard() {
+function refreshLeaderboard() {
     const list = document.getElementById('leaderboard-container');
     if (!list) return;
-    list.innerHTML = `<div class="text-center text-primary/50 text-sm py-4">Loading...</div>`;
-    try {
-        const snapshot = await getDB().collection('teams').get();
-        const data = [];
-        snapshot.forEach(doc => {
-            data.push({
-                team: doc.id,
-                score: (doc.data().solved || []).length
-            });
-        });
-
-        // Sort descending
-        data.sort((a, b) => b.score - a.score);
-
-        list.innerHTML = "";
-        data.forEach((r, i) => {
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center bg-black/60 p-2 rounded border border-primary/10 text-sm";
-            div.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="text-primary/60 font-bold">#${i + 1}</span>
-                    <span class="font-bold text-slate-100">${r.team}</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-primary font-mono">${r.score} Clues</span>
-                    <button onclick="confirmDeleteTeam('${r.team}')" class="text-red-500/50 hover:text-red-500 transition-colors">
-                        <span class="material-symbols-outlined text-sm">delete</span>
-                    </button>
-                </div>
-            `;
-            list.appendChild(div);
-        });
-
-        if (data.length === 0) list.innerHTML = `<div class="text-center text-primary/50 text-sm py-4">No teams found.</div>`;
-    } catch (e) {
-        list.innerHTML = `<div class="text-center text-red-500 text-sm py-4">Error loading data.</div>`;
-    }
-}
-
-async function confirmDeleteTeam(teamName) {
-    if (confirm(`Are you sure you want to delete team "${teamName}"? All their progress will be lost.`)) {
-        try {
-            await getDB().collection('teams').doc(teamName).delete();
-            refreshLeaderboard();
-        } catch (e) {
-            alert("Failed to delete team.");
-        }
-    }
+    list.innerHTML = `
+        <div class="p-3 bg-black/60 rounded border border-primary/20">
+            <p class="text-xs text-primary uppercase font-bold mb-1">Local Session Summary</p>
+            <div class="flex justify-between items-center">
+                <span class="text-slate-100 font-bold">${currentTeam || 'NO TEAM'}</span>
+                <span class="text-primary font-mono">${solvedClues.length} CLUES</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-2 italic">* In local mode, teams are verified individually on their devices.</p>
+        </div>
+    `;
 }
 
 function startScanner() {
@@ -325,27 +242,15 @@ function stopScanner() {
     }
 }
 
-async function onScanSuccess(decodedText) {
+function onScanSuccess(decodedText) {
     if (localCluesCache[decodedText]) {
         stopScanner();
 
-        // Sync progress with Firestore
-        try {
-            const teamRef = getDB().collection('teams').doc(currentTeam);
-            await getDB().runTransaction(async (transaction) => {
-                const teamDoc = await transaction.get(teamRef);
-                if (!teamDoc.exists) return;
-
-                let solved = teamDoc.data().solved || [];
-                if (!solved.includes(decodedText)) {
-                    solved.push(decodedText);
-                    transaction.update(teamRef, { solved: solved });
-                    solvedClues = solved;
-                }
-            });
+        // Local progress sync
+        if (!solvedClues.includes(decodedText)) {
+            solvedClues.push(decodedText);
+            saveProgress();
             updateProgressUI();
-        } catch (e) {
-            console.error("Failed to sync progress to Firestore", e);
         }
 
         currentClueId = decodedText;
