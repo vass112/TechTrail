@@ -1,29 +1,34 @@
 // Main Application Logic
-// Set this to your Render.com URL after deployment (e.g., https://techtrail-api.onrender.com)
-// If empty, it defaults to the local server
-const PRODUCTION_API_URL = 'https://techtrail-dspl.onrender.com';
-const API_BASE = PRODUCTION_API_URL ? `${PRODUCTION_API_URL}/api` : '/api';
-
 let html5QrcodeScanner = null;
 let currentTeam = null;
 let currentClueId = null;
 let solvedClues = [];
 let localCluesCache = {};
 
+// Helper to check if Firebase is initialized
+const getDB = () => window.db;
+
 document.addEventListener('DOMContentLoaded', () => {
     initUI();
-    fetchClues();
+    // Wait a bit for Firebase to initialize from index.html script
+    setTimeout(fetchClues, 500);
 });
 
 async function fetchClues() {
+    const db = getDB();
+    if (!db) {
+        console.warn("Firebase not initialized. Use local defaults if needed.");
+        return;
+    }
     try {
-        const res = await fetch(`${API_BASE}/clues`);
-        if (res.ok) {
-            localCluesCache = await res.json();
-            initQRGenerator(); // Re-init list when clues change
-        }
+        const snapshot = await db.collection('clues').get();
+        localCluesCache = {};
+        snapshot.forEach(doc => {
+            localCluesCache[doc.id] = doc.data().text;
+        });
+        initQRGenerator();
     } catch (e) {
-        console.error("Failed to load clues cache");
+        console.error("Failed to load clues from Firestore", e);
     }
 }
 
@@ -49,33 +54,34 @@ function initUI() {
             return;
         }
 
+        if (!getDB()) {
+            errEl.innerText = "FIREBASE NOT EXECUTED";
+            return;
+        }
+
         const btn = document.getElementById('btn-login');
         btn.innerText = "AUTHENTICATING...";
 
         try {
-            const res = await fetch(`${API_BASE}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ team, password })
-            });
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                if (data.isAdmin) {
-                    refreshLeaderboard();
-                    document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
-                    switchView('view-admin');
-                } else {
+            // Special Admin check
+            if (team === "ADMIN" && password === "ananthan") {
+                refreshLeaderboard();
+                document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
+                switchView('view-admin');
+            } else {
+                const doc = await getDB().collection('teams').doc(team).get();
+                if (doc.exists && doc.data().password === password) {
                     currentTeam = team;
-                    solvedClues = data.solved;
+                    solvedClues = doc.data().solved || [];
                     updateProgressUI();
                     switchView('view-home');
+                } else {
+                    errEl.innerText = "ACCESS DENIED";
                 }
-            } else {
-                errEl.innerText = "ACCESS DENIED";
             }
         } catch (e) {
-            errEl.innerText = "SERVER ERROR";
+            errEl.innerText = "AUTH ERROR";
+            console.error(e);
         }
         btn.innerText = "INITIALIZE";
     });
@@ -118,18 +124,16 @@ function initUI() {
             msg.innerText = "Fill all fields"; return;
         }
 
-        const res = await fetch(`${API_BASE}/admin/teams`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ team, password })
-        });
-
-        if (res.ok) {
+        try {
+            await getDB().collection('teams').doc(team).set({
+                password: password,
+                solved: []
+            });
             msg.innerText = "Team Created!";
             document.getElementById('new-team-name').value = '';
             document.getElementById('new-team-pass').value = '';
             refreshLeaderboard();
-        } else {
+        } catch (e) {
             msg.innerText = "Error creating team";
         }
         setTimeout(() => msg.innerText = "", 3000);
@@ -138,28 +142,40 @@ function initUI() {
     document.getElementById('btn-save-clues').addEventListener('click', async () => {
         try {
             const parsed = JSON.parse(document.getElementById('clue-editor-textarea').value);
-            const res = await fetch(`${API_BASE}/admin/clues`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ clues: parsed })
-            });
-            if (res.ok) {
-                alert('Global Clues Updated!');
-                fetchClues();
+            const batch = getDB().batch();
+
+            // Delete old clues? For simplicity, we just set the new ones.
+            // In a real app, you might want to clear the collection first.
+            for (const [id, text] of Object.entries(parsed)) {
+                const ref = getDB().collection('clues').doc(id);
+                batch.set(ref, { text: text });
             }
+
+            await batch.commit();
+            alert('Global Clues Updated!');
+            fetchClues();
         } catch (e) {
-            alert('Invalid JSON format!');
+            alert('Error updating clues or invalid JSON!');
+            console.error(e);
         }
     });
 
     document.getElementById('btn-reset-progress').addEventListener('click', async () => {
         if (confirm('DANGER: Reset progress for ALL teams globally?')) {
-            const res = await fetch(`${API_BASE}/admin/reset_progress`, { method: 'POST', body: '{}', headers: { 'Content-Type': 'application/json' } });
-            if (res.ok) {
+            try {
+                const snapshot = await getDB().collection('teams').get();
+                const batch = getDB().batch();
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { solved: [] });
+                });
+                await batch.commit();
+
                 if (currentTeam) solvedClues = [];
                 updateProgressUI();
                 refreshLeaderboard();
                 alert('Global Progress Reset.');
+            } catch (e) {
+                alert('Reset failed.');
             }
         }
     });
@@ -237,10 +253,17 @@ function updateProgressUI() {
 
 async function refreshLeaderboard() {
     const list = document.getElementById('leaderboard-container');
+    if (!list) return;
     list.innerHTML = `<div class="text-center text-primary/50 text-sm py-4">Loading...</div>`;
     try {
-        const res = await fetch(`${API_BASE}/leaderboard`);
-        const data = await res.json();
+        const snapshot = await getDB().collection('teams').get();
+        const data = [];
+        snapshot.forEach(doc => {
+            data.push({
+                team: doc.id,
+                score: (doc.data().solved || []).length
+            });
+        });
 
         // Sort descending
         data.sort((a, b) => b.score - a.score);
@@ -273,18 +296,10 @@ async function refreshLeaderboard() {
 async function confirmDeleteTeam(teamName) {
     if (confirm(`Are you sure you want to delete team "${teamName}"? All their progress will be lost.`)) {
         try {
-            const res = await fetch(`${API_BASE}/admin/delete_team`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ team: teamName })
-            });
-            if (res.ok) {
-                refreshLeaderboard();
-            } else {
-                alert("Failed to delete team.");
-            }
+            await getDB().collection('teams').doc(teamName).delete();
+            refreshLeaderboard();
         } catch (e) {
-            console.error("Error deleting team:", e);
+            alert("Failed to delete team.");
         }
     }
 }
@@ -314,20 +329,23 @@ async function onScanSuccess(decodedText) {
     if (localCluesCache[decodedText]) {
         stopScanner();
 
-        // Sync progress with backend
+        // Sync progress with Firestore
         try {
-            const res = await fetch(`${API_BASE}/progress`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ team: currentTeam, clue_id: decodedText })
+            const teamRef = getDB().collection('teams').doc(currentTeam);
+            await getDB().runTransaction(async (transaction) => {
+                const teamDoc = await transaction.get(teamRef);
+                if (!teamDoc.exists) return;
+
+                let solved = teamDoc.data().solved || [];
+                if (!solved.includes(decodedText)) {
+                    solved.push(decodedText);
+                    transaction.update(teamRef, { solved: solved });
+                    solvedClues = solved;
+                }
             });
-            const data = await res.json();
-            if (data.success) {
-                solvedClues = data.solved;
-                updateProgressUI();
-            }
+            updateProgressUI();
         } catch (e) {
-            console.error("Failed to sync progress");
+            console.error("Failed to sync progress to Firestore", e);
         }
 
         currentClueId = decodedText;

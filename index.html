@@ -9,6 +9,29 @@
     <link rel="manifest" href="manifest.json">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        // Replace with your actual config from Firebase Console
+        const firebaseConfig = {
+            apiKey: "REPLACE_ME",
+            authDomain: "REPLACE_ME",
+            projectId: "REPLACE_ME",
+            storageBucket: "REPLACE_ME",
+            messagingSenderId: "REPLACE_ME",
+            appId: "REPLACE_ME"
+        };
+        // Initialize Firebase
+        if (firebaseConfig.apiKey !== "REPLACE_ME") {
+            firebase.initializeApp(firebaseConfig);
+            window.db = firebase.firestore();
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
