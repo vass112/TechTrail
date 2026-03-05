@@ -1,12 +1,19 @@
-// Main Application Logic - Google Auth + Local Storage Version
+// Main Application Logic - Zero-Setup Local Version
 let html5QrcodeScanner = null;
-let currentUser = null; // Firebase User object
 let currentTeam = null;
 let solvedClues = [];
 
 // Local Storage Keys
-const getStorageKey = (uid, type) => `techtrail_${uid}_${type}`;
-const SETTINGS_KEY = 'techtrail_global_settings';
+const STORAGE_KEYS = {
+    CLUES: 'techtrail_clues',
+    PROGRESS: 'techtrail_progress', // { team: '', solved: [] }
+    SETTINGS: 'techtrail_settings' // { passcode: 'TECHTRAIL2025' }
+};
+
+const DEFAULT_SETTINGS = {
+    passcode: 'TECHTRAIL2025'
+};
+
 const DEFAULT_CLUES = {
     "CLUE1": "WELCOME TO TECHTRAIL. PROCEED TO THE OLD OAK TREE.",
     "CLUE2": "THE GEARS OF PROGRESS TURN IN THE MAIN HALLWAY.",
@@ -14,55 +21,29 @@ const DEFAULT_CLUES = {
     "CLUE4": "THE FINAL CHALLENGE AWAITS AT THE NORTH GATE."
 };
 
-let localCluesCache = JSON.parse(localStorage.getItem('techtrail_clues')) || DEFAULT_CLUES;
+let localCluesCache = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLUES)) || DEFAULT_CLUES;
+let localSettings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)) || DEFAULT_SETTINGS;
 
 document.addEventListener('DOMContentLoaded', () => {
     initUI();
-    initAuth();
+    loadProgress();
 });
 
-function initAuth() {
-    if (!window.auth) {
-        console.warn("Firebase Auth not initialized. Please set your config in index.html");
-        return;
-    }
-
-    window.auth.onAuthStateChanged(user => {
-        if (user) {
-            currentUser = user;
-            checkTeamRegistration();
-        } else {
-            currentUser = null;
-            currentTeam = null;
-            switchView('view-login');
-        }
-    });
-}
-
-function checkTeamRegistration() {
-    const savedTeam = localStorage.getItem(getStorageKey(currentUser.uid, 'team'));
-    if (savedTeam) {
-        currentTeam = savedTeam;
-        loadProgress();
+function loadProgress() {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROGRESS));
+    if (saved && saved.team) {
+        currentTeam = saved.team;
+        solvedClues = saved.solved || [];
         updateProgressUI();
         switchView('view-home');
-    } else {
-        // Show Team Setup View
-        document.getElementById('user-name').innerText = currentUser.displayName || 'Agent';
-        document.getElementById('user-avatar').src = currentUser.photoURL || '';
-        switchView('view-setup-team');
     }
-}
-
-function loadProgress() {
-    const savedSolved = JSON.parse(localStorage.getItem(getStorageKey(currentUser.uid, 'solved'))) || [];
-    solvedClues = savedSolved;
 }
 
 function saveProgress() {
-    if (currentUser) {
-        localStorage.setItem(getStorageKey(currentUser.uid, 'solved'), JSON.stringify(solvedClues));
-    }
+    localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify({
+        team: currentTeam,
+        solved: solvedClues
+    }));
 }
 
 function initUI() {
@@ -76,95 +57,42 @@ function initUI() {
         });
     });
 
-    // Google Login
-    document.getElementById('btn-google-login').addEventListener('click', () => {
-        if (!window.auth) {
-            alert("Firebase not configured. Check index.html lines 20-27.");
-            return;
-        }
-        window.auth.signInWithPopup(window.googleProvider).catch(err => {
-            document.getElementById('login-error').innerText = err.message;
-        });
-    });
+    // Login logic
+    document.getElementById('btn-login').addEventListener('click', () => {
+        const team = document.getElementById('login-team').value.trim().toUpperCase();
+        const password = document.getElementById('login-password').value.trim();
+        const errEl = document.getElementById('login-error');
 
-    // Team Finalization
-    document.getElementById('btn-finalize-setup').addEventListener('click', () => {
-        const teamName = document.getElementById('setup-team-name').value.trim().toUpperCase();
-        if (!teamName) {
-            document.getElementById('setup-error').innerText = "ENTER A team NAME";
+        if (!team || !password) {
+            errEl.innerText = "ENTER CREDENTIALS";
             return;
         }
 
-        currentTeam = teamName;
-        localStorage.setItem(getStorageKey(currentUser.uid, 'team'), teamName);
-        solvedClues = [];
-        saveProgress();
-        updateProgressUI();
-        switchView('view-home');
-    });
-
-    // Admin Login (Override)
-    document.getElementById('btn-admin-login').addEventListener('click', () => {
-        const id = document.getElementById('login-team').value.trim();
-        const pass = document.getElementById('login-password').value.trim();
-
-        if (id === "admin" && pass === "ananthan") {
+        // Special Admin check
+        if (team === "ADMIN" && (password === "ananthan" || password === localSettings.passcode)) {
             refreshLeaderboard();
             document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
+            document.getElementById('new-event-passcode').value = localSettings.passcode;
             switchView('view-admin');
+            return;
+        }
+
+        // Check if Event Passcode matches
+        if (password.toUpperCase() === localSettings.passcode.toUpperCase()) {
+            currentTeam = team;
+            solvedClues = [];
+            saveProgress();
+            updateProgressUI();
+            switchView('view-home');
         } else {
-            document.getElementById('login-error').innerText = "INVALID ADMIN CREDENTIALS";
+            errEl.innerText = "INVALID EVENT PASSCODE";
         }
     });
 
-    // Home Actions
+    // Scanner Triggers
     document.getElementById('btn-start').addEventListener('click', () => switchView('view-scanner'));
     document.getElementById('btn-resume').addEventListener('click', () => switchView('view-scanner'));
 
-    // Admin Panel
-    document.getElementById('go-admin').addEventListener('click', () => {
-        refreshLeaderboard();
-        initQRGenerator();
-        document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
-        switchView('view-admin');
-    });
-
-    document.getElementById('btn-save-clues').addEventListener('click', () => {
-        try {
-            const parsed = JSON.parse(document.getElementById('clue-editor-textarea').value);
-            localCluesCache = parsed;
-            localStorage.setItem('techtrail_clues', JSON.stringify(parsed));
-            alert('Clues Updated!');
-            initQRGenerator();
-        } catch (e) {
-            alert('Invalid JSON format!');
-        }
-    });
-
-    document.getElementById('btn-reset-progress').addEventListener('click', () => {
-        if (confirm('DANGER: Reset progress for THIS account?')) {
-            if (currentUser) {
-                localStorage.removeItem(getStorageKey(currentUser.uid, 'solved'));
-                localStorage.removeItem(getStorageKey(currentUser.uid, 'team'));
-                window.auth.signOut();
-            }
-            location.reload();
-        }
-    });
-
-    // Audio / Morse
-    document.getElementById('btn-play-audio').addEventListener('click', playMorseAudio);
-
-    document.getElementById('btn-preview-audio').addEventListener('click', () => {
-        const text = document.getElementById('morse-preview-input').value;
-        const morse = window.MorseSynth.translateToMorse(text);
-        document.getElementById('morse-preview-output').innerText = morse;
-        window.MorseSynth.playSequence(morse);
-    });
-
-    document.getElementById('btn-download-qr').addEventListener('click', downloadQRCode);
-
-    // Scanner Observer
     const viewScanner = document.getElementById('view-scanner');
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
@@ -176,6 +104,102 @@ function initUI() {
         });
     });
     observer.observe(viewScanner, { attributes: true, attributeFilter: ['class'] });
+
+    // Clue Display Audio
+    document.getElementById('btn-play-audio').addEventListener('click', playMorseAudio);
+
+    // Admin Triggers
+    document.getElementById('go-admin').addEventListener('click', () => {
+        refreshLeaderboard();
+        initQRGenerator();
+        document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
+        document.getElementById('new-event-passcode').value = localSettings.passcode;
+        switchView('view-admin');
+    });
+
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+        const newPass = document.getElementById('new-event-passcode').value.trim().toUpperCase();
+        if (newPass) {
+            localSettings.passcode = newPass;
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(localSettings));
+            alert('Settings Saved! New Passcode: ' + newPass);
+        }
+    });
+
+    document.getElementById('btn-save-clues').addEventListener('click', () => {
+        try {
+            const parsed = JSON.parse(document.getElementById('clue-editor-textarea').value);
+            localCluesCache = parsed;
+            localStorage.setItem(STORAGE_KEYS.CLUES, JSON.stringify(parsed));
+            alert('Clues Updated!');
+            initQRGenerator();
+        } catch (e) {
+            alert('Invalid JSON format!');
+        }
+    });
+
+    document.getElementById('btn-reset-progress').addEventListener('click', () => {
+        if (confirm('DANGER: Reset progress for THIS device?')) {
+            localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+            solvedClues = [];
+            currentTeam = null;
+            updateProgressUI();
+            location.reload();
+        }
+    });
+
+    document.getElementById('btn-preview-audio').addEventListener('click', () => {
+        const text = document.getElementById('morse-preview-input').value;
+        const morse = window.MorseSynth.translateToMorse(text);
+        document.getElementById('morse-preview-output').innerText = morse;
+        window.MorseSynth.playSequence(morse);
+    });
+
+    document.getElementById('btn-download-qr').addEventListener('click', downloadQRCode);
+}
+
+function initQRGenerator() {
+    const list = document.getElementById('qr-clue-list');
+    if (!list) return;
+    list.innerHTML = "";
+    Object.keys(localCluesCache).forEach(id => {
+        const btn = document.createElement('button');
+        btn.className = "px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-bold hover:bg-primary/30 transition-colors";
+        btn.innerText = id;
+        btn.onclick = () => generateQRCode(id);
+        list.appendChild(btn);
+    });
+}
+
+function generateQRCode(text) {
+    const container = document.getElementById('qrcode-container');
+    const qrDiv = document.getElementById('qrcode');
+    const label = document.getElementById('qr-label');
+    const dlBtn = document.getElementById('btn-download-qr');
+
+    qrDiv.innerHTML = "";
+    new QRCode(qrDiv, {
+        text: text,
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    label.innerText = text;
+    container.classList.remove('hidden');
+    dlBtn.classList.remove('hidden');
+}
+
+function downloadQRCode() {
+    const qrImg = document.querySelector('#qrcode img');
+    if (!qrImg) return;
+    const label = document.getElementById('qr-label').innerText;
+    const link = document.createElement('a');
+    link.download = `QR_${label}.png`;
+    link.href = qrImg.src;
+    link.click();
 }
 
 function switchView(viewId) {
@@ -195,18 +219,14 @@ function refreshLeaderboard() {
     if (!list) return;
     list.innerHTML = `
         <div class="p-4 bg-black/60 rounded-xl border border-primary/20">
-            <p class="text-xs text-primary uppercase font-bold mb-3">Identity Context</p>
-            <div class="flex items-center gap-4 mb-4">
-                <img src="${currentUser?.photoURL || ''}" class="w-10 h-10 rounded-full border border-primary/40">
-                <div>
-                    <p class="text-slate-100 font-bold">${currentTeam || 'UNINITIALIZED'}</p>
-                    <p class="text-slate-500 text-[10px] font-mono">${currentUser?.email || 'OFFLINE'}</p>
-                </div>
+            <p class="text-xs text-primary uppercase font-bold mb-3">Local Session Summary</p>
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-slate-100 font-bold">${currentTeam || 'NO TEAM'}</span>
+                <span class="text-primary font-mono">${solvedClues.length} CLUES</span>
             </div>
-            <div class="flex justify-between items-center pt-3 border-t border-primary/10">
-                <span class="text-primary font-mono text-sm">PROGRESS</span>
-                <span class="text-slate-100 font-bold">${solvedClues.length} NODES</span>
-            </div>
+            <p class="text-[10px] text-slate-500 italic mt-3 border-t border-primary/10 pt-2 text-center">
+                * Zero-Backend Mode: Each device scales independently.
+            </p>
         </div>
     `;
 }
@@ -218,7 +238,7 @@ function startScanner() {
 
     html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
         .catch(err => {
-            document.getElementById('scanner-error').innerText = "Access Denied";
+            document.getElementById('scanner-error').innerText = "Camera Permission Required";
             console.error(err);
         });
 }
@@ -243,15 +263,15 @@ function onScanSuccess(decodedText) {
         displayClue(decodedText, localCluesCache[decodedText]);
         switchView('view-clue');
     } else {
-        document.getElementById('scanner-error').innerText = "NODE NOT RECOGNIZED";
-        setTimeout(() => { if (document.getElementById('scanner-error')) document.getElementById('scanner-error').innerText = ""; }, 2000);
+        document.getElementById('scanner-error').innerText = "INVALID CLUE NODE";
+        setTimeout(() => { if (document.getElementById('scanner-error')) document.getElementById('scanner-error').innerText = ""; }, 2500);
     }
 }
 
 function onScanFailure(error) { }
 
 function displayClue(id, text) {
-    document.getElementById('clue-id-display').innerText = id + " SYNCED";
+    document.getElementById('clue-id-display').innerText = id + " SECURED";
     const morse = window.MorseSynth.translateToMorse(text);
     document.getElementById('morse-display').innerText = morse;
     document.getElementById('morse-display').dataset.morse = morse;
@@ -259,47 +279,16 @@ function displayClue(id, text) {
 
 function playMorseAudio() {
     const morse = document.getElementById('morse-display').dataset.morse;
+    if (!morse) return;
+
     const btn = document.getElementById('btn-play-audio');
     btn.disabled = true;
     btn.classList.add('pulse-audio');
-    btn.innerHTML = `<span class="material-symbols-outlined text-2xl font-bold animate-pulse">graphic_eq</span><span class="text-lg font-bold uppercase tracking-wider">SYNCING...</span>`;
+    btn.innerHTML = `<span class="material-symbols-outlined text-2xl font-bold animate-pulse">graphic_eq</span><span class="text-lg font-bold uppercase tracking-wider">TRANSMITTING...</span>`;
 
     window.MorseSynth.playSequence(morse, () => {
         btn.disabled = false;
         btn.classList.remove('pulse-audio');
         btn.innerHTML = `<span class="material-symbols-outlined text-2xl font-bold">graphic_eq</span><span class="text-lg font-bold uppercase tracking-wider">PLAY MORSE AUDIO</span>`;
     });
-}
-
-function initQRGenerator() {
-    const list = document.getElementById('qr-clue-list');
-    if (!list) return;
-    list.innerHTML = "";
-    Object.keys(localCluesCache).forEach(id => {
-        const btn = document.createElement('button');
-        btn.className = "px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-bold";
-        btn.innerText = id;
-        btn.onclick = () => generateQRCode(id);
-        list.appendChild(btn);
-    });
-}
-
-function generateQRCode(text) {
-    const container = document.getElementById('qrcode-container');
-    const qrDiv = document.getElementById('qrcode');
-    const label = document.getElementById('qr-label');
-    qrDiv.innerHTML = "";
-    new QRCode(qrDiv, { text: text, width: 256, height: 256 });
-    label.innerText = text;
-    container.classList.remove('hidden');
-    document.getElementById('btn-download-qr').classList.remove('hidden');
-}
-
-function downloadQRCode() {
-    const qrImg = document.querySelector('#qrcode img');
-    if (!qrImg) return;
-    const link = document.createElement('a');
-    link.download = `QR_${document.getElementById('qr-label').innerText}.png`;
-    link.href = qrImg.src;
-    link.click();
 }
