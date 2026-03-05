@@ -69,7 +69,7 @@
                 <!-- Google Login Button -->
                 <button id="btn-google-login"
                     class="w-full h-16 flex items-center justify-center gap-4 bg-white text-slate-900 font-bold text-lg rounded-xl shadow-lg active:scale-95 transition-transform">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMjIuNTYgMTIuMjVjMC0uNzgtLjA3LTEuNTMtLjItMi4yNUgxMnY0LjI2aDUuOTJjLS4yNiAxLjM3LTEuMDQgMi41My0yLjIxIDMuMzF2Mi43N2gzLjU3YzIuMDgtMS45MiAzLjI4LTQuNzQgMy4yOC04LjA5eiIgZmlsbD0iIzQyODVGNCIvPjxwYXRoIGQ9Ik0xMiAyM2MyLjk3IDAgNS40Ni0uOTggNy4yOC0yLjY2bC0zLjU3LTIuNzdjLS45OC42Ni0yLjIzIDEuMDYtMy43MSAxLjA2LTIuODYgMC01LjI5LTEuOTMtNi4xNi00LjUzSDIuMTh2Mi44NEMzLjk5IDIwLjUzIDcuNyAyMyAxMiAyM3oiIGZpbGw9IiMzNEE4NTMiLz48cGF0aCBkPSJNNS44NCAxNC4wOWMtLjIyLS42Ni0uMzUtMS4zNi0uMzUtMi4wOXMuMTMtMS40My4zNS0yLjA5VjcuMDdIMi4xOEMxLjQzIDguNTUgMSAxMC4yMiAxIDEycy40MyAzLjQ1IDEuMTggNC45M2wzLjY2LTIuODR6IiBmaWxsPSIjRkJCQzA1Ii8+PHBhdGggZD0iTTEyIDUuMzhjMS42MiAwIDMuMDYuNTYgNC4yMSAxLjY2bDMuMTUtMy4xNUMxNy40NSAyLjA5IDE0Ljk3IDEgMTIgMSA3LjcgMSAzLjk5IDMuNDcgMi4xOCA3LjA3bDMuNjYgMi44NGMuODctMi42IDMuMy00LjUzIDYuMTYtNC41M3oiIGZpbGw9IiNFQTQzMzUiLz48cGF0aCBkPSJNMSAxaDIydjIySDF6IiBmaWxsPSJub25lIi8+PC9zdmc+"
                         class="w-6 h-6" alt="Google">
                     SIGN IN WITH GOOGLE
                 </button>
@@ -82,11 +82,11 @@
 
                 <div class="space-y-3 opacity-60 hover:opacity-100 transition-opacity">
                     <div class="bg-black/40 p-1 border border-primary/30 rounded-xl">
-                        <input type="text" id="login-team" placeholder="ADMIN ID"
+                        <input type="text" id="admin-login-id" placeholder="ADMIN ID"
                             class="w-full bg-transparent border-none text-primary placeholder-primary/30 font-mono text-sm p-3 focus:ring-0 text-center uppercase">
                     </div>
                     <div class="bg-black/40 p-1 border border-primary/30 rounded-xl">
-                        <input type="password" id="login-password" placeholder="ADMIN PASS"
+                        <input type="password" id="admin-login-pass" placeholder="ADMIN PASS"
                             class="w-full bg-transparent border-none text-primary placeholder-primary/30 font-mono text-sm p-3 focus:ring-0 text-center">
                     </div>
                     <button id="btn-admin-login"
@@ -389,9 +389,14 @@
                     </div>
                 </div>
 
-                <div <input type="text" id="morse-preview-input"
-                    class="w-full bg-black/60 border border-primary/30 rounded-lg p-3 mb-3 text-primary placeholder-primary/40 focus:outline-none focus:border-primary"
-                    placeholder="Enter text to translate">
+                <div
+                    class="bg-black/30 p-4 rounded-xl border border-primary/20 shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
+                    <h3 class="text-primary font-bold mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined">volume_up</span> Morse Audio Tester
+                    </h3>
+                    <input type="text" id="morse-preview-input"
+                        class="w-full bg-black/60 border border-primary/30 rounded-lg p-3 mb-3 text-primary placeholder-primary/40 focus:outline-none focus:border-primary uppercase font-mono"
+                        placeholder="Enter text to translate">
                     <div class="bg-black/50 p-4 rounded-lg mb-3 border border-primary/10">
                         <div id="morse-preview-output" class="text-xl font-mono text-primary min-h-8 break-all"></div>
                     </div>

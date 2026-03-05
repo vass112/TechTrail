@@ -78,8 +78,8 @@ function initUI() {
 
     // Admin Override Login
     document.getElementById('btn-admin-login').addEventListener('click', () => {
-        const id = document.getElementById('login-team').value.trim();
-        const pass = document.getElementById('login-password').value.trim();
+        const id = document.getElementById('admin-login-id').value.trim().toLowerCase();
+        const pass = document.getElementById('admin-login-pass').value.trim().toLowerCase();
         if (id === "admin" && pass === "ananthan") {
             refreshLeaderboard();
             document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
