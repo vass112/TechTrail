@@ -7,18 +7,15 @@ let solvedClues = [];
 const STORAGE_KEYS = {
     CLUES: 'techtrail_clues',
     PROGRESS: 'techtrail_progress', // { team: '', solved: [] }
-    TEAMS: 'techtrail_teams_db' // Admin local team creator { name: pass }
+    SETTINGS: 'techtrail_settings' // { passcode: 'ANANTHAN' }
 };
 
-// Default Clues if none in storage
-const DEFAULT_CLUES = {
-    "CLUE1": "WELCOME TO TECHTRAIL. PROCEED TO THE OLD OAK TREE.",
-    "CLUE2": "THE GEARS OF PROGRESS TURN IN THE MAIN HALLWAY.",
-    "CLUE3": "KNOWLEDGE IS POWER. VISIT THE LIBRARY ENTRANCE.",
-    "CLUE4": "THE FINAL CHALLENGE AWAITS AT THE NORTH GATE."
+const DEFAULT_SETTINGS = {
+    passcode: 'TECHTRAIL2025'
 };
 
 let localCluesCache = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLUES)) || DEFAULT_CLUES;
+let localSettings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS)) || DEFAULT_SETTINGS;
 
 document.addEventListener('DOMContentLoaded', () => {
     initUI();
@@ -69,14 +66,18 @@ function initUI() {
             refreshLeaderboard();
             document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
             switchView('view-admin');
-        } else {
-            // Check local "Teams DB" if any, or just allow any team (since this is 100% local now)
-            // For a better experience, we'll just "register" the team on this device.
+            return;
+        }
+
+        // Check if Event Passcode matches
+        if (password.toUpperCase() === localSettings.passcode.toUpperCase()) {
             currentTeam = team;
             solvedClues = [];
             saveProgress();
             updateProgressUI();
             switchView('view-home');
+        } else {
+            errEl.innerText = "INVALID EVENT PASSCODE";
         }
     });
 
@@ -104,6 +105,7 @@ function initUI() {
         refreshLeaderboard();
         initQRGenerator();
         document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
+        document.getElementById('new-event-passcode').value = localSettings.passcode;
         switchView('view-admin');
     });
 
@@ -111,6 +113,15 @@ function initUI() {
 
     document.getElementById('btn-create-team').addEventListener('click', () => {
         alert("In Local-Only mode, teams are registered directly upon login on their own devices.");
+    });
+
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+        const newPass = document.getElementById('new-event-passcode').value.trim().toUpperCase();
+        if (newPass) {
+            localSettings.passcode = newPass;
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(localSettings));
+            alert('Settings Saved! New Passcode: ' + newPass);
+        }
     });
 
     document.getElementById('btn-save-clues').addEventListener('click', () => {

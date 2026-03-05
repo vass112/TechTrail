@@ -286,24 +286,24 @@
                     </div>
                 </div>
 
-                <!-- TEAMS TAB -->
+                <!-- SETTINGS TAB -->
                 <div
                     class="bg-black/30 p-4 rounded-xl border border-primary/20 shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">
                     <h3 class="text-primary font-bold mb-3 flex items-center gap-2">
-                        <span class="material-symbols-outlined">group_add</span> Create Team
+                        <span class="material-symbols-outlined">settings</span> Event Configuration
                     </h3>
-                    <div class="flex gap-2">
-                        <input type="text" id="new-team-name"
-                            class="w-1/2 bg-black/60 border border-primary/30 rounded-lg p-2 text-sm text-primary placeholder-primary/40 focus:outline-none"
-                            placeholder="Team Name">
-                        <input type="text" id="new-team-pass"
-                            class="w-1/2 bg-black/60 border border-primary/30 rounded-lg p-2 text-sm text-primary placeholder-primary/40 focus:outline-none"
-                            placeholder="Password">
+                    <div class="flex flex-col gap-3">
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Global Event Passcode
+                        </p>
+                        <input type="text" id="new-event-passcode"
+                            class="w-full bg-black/60 border border-primary/30 rounded-lg p-3 text-sm text-primary placeholder-primary/40 focus:outline-none uppercase font-mono"
+                            placeholder="e.g. TRAIL2025">
+                        <button id="btn-save-settings"
+                            class="w-full bg-primary/20 text-primary border border-primary px-4 py-3 rounded-lg font-bold active:scale-95 transition-transform text-sm uppercase">Save
+                            Passcode</button>
+                        <p class="text-[10px] text-slate-500 italic mt-1">* Share this code with participants. They need
+                            it to join on their devices.</p>
                     </div>
-                    <button id="btn-create-team"
-                        class="mt-3 w-full bg-primary/20 text-primary border border-primary px-4 py-2 rounded-lg font-bold active:scale-95 transition-transform text-sm">Add
-                        Team</button>
-                    <p id="team-create-msg" class="text-primary/80 text-xs mt-2 text-center h-4"></p>
                 </div>
 
                 <div
