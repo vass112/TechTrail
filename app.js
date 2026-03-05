@@ -374,10 +374,12 @@ function playMorseAudio() {
 
     const btn = document.getElementById('btn-play-audio');
     btn.disabled = true;
+    btn.classList.add('pulse-audio');
     btn.innerHTML = `<span class="material-symbols-outlined text-2xl font-bold animate-pulse">graphic_eq</span><span class="text-lg font-bold uppercase tracking-wider">TRANSMITTING...</span>`;
 
     window.MorseSynth.playSequence(morse, () => {
         btn.disabled = false;
+        btn.classList.remove('pulse-audio');
         btn.innerHTML = `<span class="material-symbols-outlined text-2xl font-bold">graphic_eq</span><span class="text-lg font-bold uppercase tracking-wider">PLAY MORSE AUDIO</span>`;
     });
 }

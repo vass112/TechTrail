@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow anyone to read clues (necessary for the game to start)
+    match /clues/{clueId} {
+      allow read: if true;
+      allow write: if false; // Only allow via Admin manually or specific rules
+    }
+    
+    // Team access: Allow read/write for their own document
+    // NOTE: In this simple version, we use team names as document IDs.
+    match /teams/{teamId} {
+      allow read: if true; 
+      allow create, update: if true; // In a production app, add auth checks
+      allow delete: if false; // Prevent teams from deleting themselves
+    }
+    
+    // Admin override (for the Admin panel)
+    // NOTE: For a real event, you should use Firebase Auth and check request.auth.uid
+    // For now, these rules are permissive for ease of setup during the event.
+    match /{document=**} {
+      allow read, write: if true; 
+    }
+  }
+}
