@@ -78,8 +78,17 @@ function initUI() {
 
     // Admin Override Login
     document.getElementById('btn-admin-login').addEventListener('click', () => {
-        const id = document.getElementById('admin-login-id').value.trim().toLowerCase();
-        const pass = document.getElementById('admin-login-pass').value.trim().toLowerCase();
+        const idInput = document.getElementById('admin-login-id') || document.getElementById('login-team');
+        const passInput = document.getElementById('admin-login-pass') || document.getElementById('login-password');
+
+        if (!idInput || !passInput) {
+            console.error("Admin inputs not found");
+            return;
+        }
+
+        const id = idInput.value.trim().toLowerCase();
+        const pass = passInput.value.trim().toLowerCase();
+
         if (id === "admin" && pass === "ananthan") {
             refreshLeaderboard();
             document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
