@@ -41,10 +41,21 @@ async function initAuth() {
     const urlParams = new URLSearchParams(window.location.search);
     const externalClue = urlParams.get('clue');
     if (externalClue && localCluesCache[externalClue]) {
+        // Unlock body scroll — overflow-hidden blocks content on mobile
+        document.body.classList.remove('overflow-hidden');
+        document.body.classList.add('overflow-y-auto');
+        const appEl = document.getElementById('app');
+        if (appEl) {
+            appEl.classList.remove('overflow-hidden', 'h-screen');
+            appEl.classList.add('overflow-y-auto', 'min-h-screen');
+        }
+
         // Show a standalone clue page — no login needed
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         const clueView = document.getElementById('view-clue');
         clueView.classList.add('active');
+        clueView.style.height = 'auto';
+        clueView.style.minHeight = '100dvh';
         displayClue(externalClue, localCluesCache[externalClue]);
         // Clean up URL so it doesn't persist on refresh
         window.history.replaceState({}, '', window.location.pathname + window.location.hash);
