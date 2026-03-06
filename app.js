@@ -37,6 +37,20 @@ async function initAuth() {
         }
     } catch (e) { console.warn("Cloud clues offline, using defaults"); }
 
+    // Handle external QR scan (e.g., scanned with Google Camera)
+    const urlParams = new URLSearchParams(window.location.search);
+    const externalClue = urlParams.get('clue');
+    if (externalClue && localCluesCache[externalClue]) {
+        // Show a standalone clue page — no login needed
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        const clueView = document.getElementById('view-clue');
+        clueView.classList.add('active');
+        displayClue(externalClue, localCluesCache[externalClue]);
+        // Clean up URL so it doesn't persist on refresh
+        window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+        return; // Don't continue auth setup
+    }
+
     window.auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
@@ -308,14 +322,21 @@ function stopScanner() {
 }
 
 function onScanSuccess(decodedText) {
-    if (localCluesCache[decodedText]) {
+    // Handle both plain key (CLUE1) and full URL (?clue=CLUE1)
+    let clueKey = decodedText;
+    try {
+        const url = new URL(decodedText);
+        clueKey = url.searchParams.get('clue') || decodedText;
+    } catch (e) { /* not a URL, use as-is */ }
+
+    if (localCluesCache[clueKey]) {
         stopScanner();
-        if (!solvedClues.includes(decodedText)) {
-            solvedClues.push(decodedText);
+        if (!solvedClues.includes(clueKey)) {
+            solvedClues.push(clueKey);
             saveProgress();
             updateProgressUI();
         }
-        displayClue(decodedText, localCluesCache[decodedText]);
+        displayClue(clueKey, localCluesCache[clueKey]);
         switchView('view-clue');
     } else {
         document.getElementById('scanner-error').innerText = "INVALID NODE";
@@ -359,13 +380,15 @@ function initQRGenerator() {
     });
 }
 
-function generateQRCode(text) {
+function generateQRCode(clueKey) {
     const container = document.getElementById('qrcode-container');
     const qrDiv = document.getElementById('qrcode');
     const label = document.getElementById('qr-label');
     qrDiv.innerHTML = "";
-    new QRCode(qrDiv, { text: text, width: 256, height: 256 });
-    label.innerText = text;
+    // Encode a full URL so external cameras (Google Lens etc.) open the clue directly
+    const clueUrl = `${window.location.origin}${window.location.pathname}?clue=${clueKey}`;
+    new QRCode(qrDiv, { text: clueUrl, width: 256, height: 256 });
+    label.innerText = clueKey;
     container.classList.remove('hidden');
     document.getElementById('btn-download-qr').classList.remove('hidden');
 }
