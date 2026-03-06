@@ -51,13 +51,14 @@ function checkTeamRegistration() {
             solvedClues = data.solved || [];
             updateProgressUI();
             switchView('view-home');
-            // Listen for global leaderboard updates if we are admin or just for general view
-            initLeaderboardListener();
         } else {
             document.getElementById('user-name').innerText = currentUser.displayName || 'Agent';
             document.getElementById('user-avatar').src = currentUser.photoURL || '';
             switchView('view-setup-team');
         }
+    }).catch(err => {
+        console.error("Team check failed:", err);
+        document.getElementById('login-error').innerText = "CONNECTION ERROR - CHECK DB RULES";
     });
 }
 
@@ -197,15 +198,20 @@ function initLeaderboardListener() {
     const list = document.getElementById('leaderboard-container');
     if (!list) return;
 
-    window.db.collection('teams').orderBy('solvedCount', 'desc').onSnapshot(snapshot => {
+    window.db.collection('teams').onSnapshot(snapshot => {
         list.innerHTML = "";
         if (snapshot.empty) {
             list.innerHTML = '<div class="text-center text-primary/50 text-sm py-4">No agents deployed yet</div>';
             return;
         }
 
-        snapshot.forEach(doc => {
-            const team = doc.data();
+        const teams = [];
+        snapshot.forEach(doc => teams.push(doc.data()));
+
+        // Sort by solvedCount desc
+        teams.sort((a, b) => (b.solvedCount || 0) - (a.solvedCount || 0));
+
+        teams.forEach(team => {
             const isMe = currentUser && team.uid === currentUser.uid;
 
             const card = document.createElement('div');
