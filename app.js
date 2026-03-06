@@ -1,11 +1,11 @@
-// Main Application Logic - Google Auth + Local Storage Version
+// Main Application Logic - Google Auth + Firestore Persistence
 let html5QrcodeScanner = null;
 let currentUser = null;
 let currentTeam = null;
 let solvedClues = [];
+let isAdmin = false;
+let adminTapCount = 0;
 
-// Local Storage Keys - Fallbacks only
-const getStorageKey = (uid, type) => `techtrail_${uid}_${type}`;
 const DEFAULT_CLUES = {
     "CLUE1": "Every kingdom has a guardian, The first eyes that see every visitor. No one enters without their watchful gaze. Find the protector of the campus gate. Speak the password: 'Sentinel'",
     "CLUE2": "In silence he sits with folded hands, Watching the chaos of the world calmly. Wisdom carved in stone stands before the great block of knowledge. Seek the enlightened one.",
@@ -44,6 +44,7 @@ async function initAuth() {
         } else {
             currentUser = null;
             currentTeam = null;
+            isAdmin = false;
             switchView('view-login');
         }
     });
@@ -83,11 +84,31 @@ function saveProgress() {
 }
 
 function initUI() {
-    // Basic Routing
+    // Secret Admin Toggle (5 taps on IDENTITY NODE)
+    const adminTrigger = document.getElementById('admin-trigger');
+    if (adminTrigger) {
+        adminTrigger.addEventListener('click', () => {
+            adminTapCount++;
+            if (adminTapCount >= 5) {
+                document.getElementById('admin-section').classList.remove('hidden');
+                adminTrigger.innerText = "OVERRIDE ACTIVE";
+                adminTrigger.classList.add('text-primary');
+            }
+        });
+    }
+
+    // Basic Routing with GUARD
     document.querySelectorAll('[data-target]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetEl = e.target.closest('[data-target]');
-            if (targetEl) switchView(targetEl.dataset.target);
+            if (targetEl) {
+                const target = targetEl.dataset.target;
+                if (target === 'view-admin' && !isAdmin) {
+                    alert('ADMIN AUTHORIZATION REQUIRED');
+                    return;
+                }
+                switchView(target);
+            }
         });
     });
 
@@ -100,19 +121,17 @@ function initUI() {
 
     // Admin Override Login
     document.getElementById('btn-admin-login').addEventListener('click', () => {
-        const idInput = document.getElementById('admin-login-id') || document.getElementById('login-team');
-        const passInput = document.getElementById('admin-login-pass') || document.getElementById('login-password');
+        const idInput = document.getElementById('admin-login-id');
+        const passInput = document.getElementById('admin-login-pass');
 
-        if (!idInput || !passInput) {
-            console.error("Admin inputs not found");
-            return;
-        }
+        if (!idInput || !passInput) return;
 
         const id = idInput.value.trim().toLowerCase();
         const pass = passInput.value.trim().toLowerCase();
 
         if (id === "admin" && pass === "ananthan") {
-            initLeaderboardListener(); // Start real-time updates
+            isAdmin = true;
+            initLeaderboardListener();
             document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
             switchView('view-admin');
         } else {
@@ -141,6 +160,7 @@ function initUI() {
     // Logout
     document.getElementById('btn-logout').addEventListener('click', () => {
         if (confirm("Sign out of TechTrail?")) {
+            isAdmin = false;
             window.auth.signOut();
         }
     });
@@ -149,7 +169,6 @@ function initUI() {
         try {
             const parsed = JSON.parse(document.getElementById('clue-editor-textarea').value);
             localCluesCache = parsed;
-            // Save to Firestore
             window.db.collection('config').doc('game').set({ clues: parsed });
             alert('Clues Syncronized to Cloud!');
             initQRGenerator();
@@ -213,16 +232,12 @@ function initLeaderboardListener() {
 
         const teams = [];
         snapshot.forEach(doc => teams.push(doc.data()));
-
-        // Sort by solvedCount desc
         teams.sort((a, b) => (b.solvedCount || 0) - (a.solvedCount || 0));
 
         teams.forEach(team => {
             const isMe = currentUser && team.uid === currentUser.uid;
-
             const card = document.createElement('div');
             card.className = `p-3 rounded-lg border flex items-center justify-between transition-all ${isMe ? 'bg-primary/20 border-primary shadow-[0_0_10px_rgba(255,59,48,0.3)]' : 'bg-black/40 border-primary/20 hover:border-primary/40'}`;
-
             card.innerHTML = `
                 <div class="flex items-center gap-3">
                     <img src="${team.photoURL || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full border border-primary/40">
@@ -288,6 +303,7 @@ function displayClue(id, text) {
 function playMorseAudio() {
     const morse = document.getElementById('morse-display').dataset.morse;
     const btn = document.getElementById('btn-play-audio');
+    if (!morse) return;
     btn.disabled = true;
     btn.classList.add('pulse-audio');
     btn.innerHTML = `<span class="material-symbols-outlined text-2xl font-bold animate-pulse">graphic_eq</span><span class="text-lg font-bold uppercase tracking-wider">SYNCING...</span>`;

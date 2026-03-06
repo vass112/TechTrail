@@ -77,11 +77,12 @@
 
                 <div class="flex items-center gap-4 py-2">
                     <div class="flex-1 h-px bg-primary/20"></div>
-                    <span class="text-primary/40 font-mono text-xs">OR ADMIN ACCESS</span>
+                    <span id="admin-trigger" class="text-primary/40 font-mono text-xs cursor-pointer select-none">OR
+                        ADMIN ACCESS</span>
                     <div class="flex-1 h-px bg-primary/20"></div>
                 </div>
 
-                <div class="space-y-3 opacity-60 hover:opacity-100 transition-opacity">
+                <div id="admin-section" class="space-y-3 hidden opacity-60 hover:opacity-100 transition-opacity">
                     <div class="bg-black/40 p-1 border border-primary/30 rounded-xl">
                         <input type="text" id="admin-login-id" placeholder="ADMIN ID"
                             class="w-full bg-transparent border-none text-primary placeholder-primary/30 font-mono text-sm p-3 focus:ring-0 text-center uppercase">
@@ -412,7 +413,7 @@
 
     <!-- Scripts -->
     <script src="morse.js"></script>
-    <script src="app.js?v=1.0.2"></script>
+    <script src="app.js?v=1.0.3"></script>
 </body>
 
 </html>
