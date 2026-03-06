@@ -51,6 +51,9 @@ async function initAuth() {
 }
 
 function checkTeamRegistration() {
+    // If admin is active, do NOT touch the view
+    if (isAdmin) return;
+
     window.db.collection('teams').doc(currentUser.uid).get().then(doc => {
         if (doc.exists) {
             const data = doc.data();
@@ -166,16 +169,24 @@ function initUI() {
         }
     });
 
-    // Admin Close
+    // Admin Close — sign out of Google so onAuthStateChanged sends to login cleanly
     const btnCloseAdmin = document.getElementById('btn-close-admin');
     if (btnCloseAdmin) {
         btnCloseAdmin.addEventListener('click', () => {
-            isAdmin = false;
-            adminTapCount = 0;
             const adminTrigger = document.getElementById('admin-trigger');
             if (adminTrigger) adminTrigger.innerText = "OR ADMIN ACCESS";
             document.getElementById('admin-section').classList.add('hidden');
-            switchView('view-login');
+            adminTapCount = 0;
+
+            if (currentUser) {
+                // User was also Google-logged-in; sign them out cleanly
+                isAdmin = false;
+                window.auth.signOut(); // onAuthStateChanged will switch to view-login
+            } else {
+                // Pure admin override, no Google session
+                isAdmin = false;
+                switchView('view-login');
+            }
         });
     }
 
