@@ -4,7 +4,7 @@ let currentUser = null;
 let currentTeam = null;
 let solvedClues = [];
 
-// Local Storage Keys
+// Local Storage Keys - Fallbacks only
 const getStorageKey = (uid, type) => `techtrail_${uid}_${type}`;
 const DEFAULT_CLUES = {
     "CLUE1": "WELCOME TO TECHTRAIL. PROCEED TO THE OLD OAK TREE.",
@@ -13,15 +13,23 @@ const DEFAULT_CLUES = {
     "CLUE4": "THE FINAL CHALLENGE AWAITS AT THE NORTH GATE."
 };
 
-let localCluesCache = JSON.parse(localStorage.getItem('techtrail_clues')) || DEFAULT_CLUES;
+let localCluesCache = DEFAULT_CLUES;
 
 document.addEventListener('DOMContentLoaded', () => {
     initUI();
     initAuth();
 });
 
-function initAuth() {
-    if (!window.auth) return;
+async function initAuth() {
+    if (!window.auth || !window.db) return;
+
+    // Load Clues from Cloud
+    try {
+        const clueDoc = await window.db.collection('config').doc('game').get();
+        if (clueDoc.exists) {
+            localCluesCache = clueDoc.data().clues || DEFAULT_CLUES;
+        }
+    } catch (e) { console.warn("Cloud clues offline, using defaults"); }
 
     window.auth.onAuthStateChanged(user => {
         if (user) {
@@ -36,27 +44,34 @@ function initAuth() {
 }
 
 function checkTeamRegistration() {
-    const savedTeam = localStorage.getItem(getStorageKey(currentUser.uid, 'team'));
-    if (savedTeam) {
-        currentTeam = savedTeam;
-        loadProgress();
-        updateProgressUI();
-        switchView('view-home');
-    } else {
-        document.getElementById('user-name').innerText = currentUser.displayName || 'Agent';
-        document.getElementById('user-avatar').src = currentUser.photoURL || '';
-        switchView('view-setup-team');
-    }
-}
-
-function loadProgress() {
-    const savedSolved = JSON.parse(localStorage.getItem(getStorageKey(currentUser.uid, 'solved'))) || [];
-    solvedClues = savedSolved;
+    window.db.collection('teams').doc(currentUser.uid).get().then(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            currentTeam = data.teamName;
+            solvedClues = data.solved || [];
+            updateProgressUI();
+            switchView('view-home');
+            // Listen for global leaderboard updates if we are admin or just for general view
+            initLeaderboardListener();
+        } else {
+            document.getElementById('user-name').innerText = currentUser.displayName || 'Agent';
+            document.getElementById('user-avatar').src = currentUser.photoURL || '';
+            switchView('view-setup-team');
+        }
+    });
 }
 
 function saveProgress() {
-    if (currentUser) {
-        localStorage.setItem(getStorageKey(currentUser.uid, 'solved'), JSON.stringify(solvedClues));
+    if (currentUser && currentTeam) {
+        window.db.collection('teams').doc(currentUser.uid).set({
+            teamName: currentTeam,
+            solved: solvedClues,
+            solvedCount: solvedClues.length,
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            email: currentUser.email,
+            photoURL: currentUser.photoURL,
+            uid: currentUser.uid
+        }, { merge: true });
     }
 }
 
@@ -90,7 +105,7 @@ function initUI() {
         const pass = passInput.value.trim().toLowerCase();
 
         if (id === "admin" && pass === "ananthan") {
-            refreshLeaderboard();
+            initLeaderboardListener(); // Start real-time updates
             document.getElementById('clue-editor-textarea').value = JSON.stringify(localCluesCache, null, 4);
             switchView('view-admin');
         } else {
@@ -106,7 +121,6 @@ function initUI() {
             return;
         }
         currentTeam = teamName;
-        localStorage.setItem(getStorageKey(currentUser.uid, 'team'), teamName);
         solvedClues = [];
         saveProgress();
         updateProgressUI();
@@ -128,8 +142,9 @@ function initUI() {
         try {
             const parsed = JSON.parse(document.getElementById('clue-editor-textarea').value);
             localCluesCache = parsed;
-            localStorage.setItem('techtrail_clues', JSON.stringify(parsed));
-            alert('Clues Updated!');
+            // Save to Firestore
+            window.db.collection('config').doc('game').set({ clues: parsed });
+            alert('Clues Syncronized to Cloud!');
             initQRGenerator();
         } catch (e) {
             alert('Invalid JSON format!');
@@ -137,10 +152,9 @@ function initUI() {
     });
 
     document.getElementById('btn-reset-progress').addEventListener('click', () => {
-        if (confirm('Reset EVERYTHING for this account (Local Sync)?')) {
+        if (confirm('Permanently Delete Progress for this account?')) {
             if (currentUser) {
-                localStorage.removeItem(getStorageKey(currentUser.uid, 'solved'));
-                localStorage.removeItem(getStorageKey(currentUser.uid, 'team'));
+                window.db.collection('teams').doc(currentUser.uid).delete();
                 window.auth.signOut();
             }
             location.reload();
@@ -179,25 +193,40 @@ function updateProgressUI() {
     document.getElementById('btn-start').style.display = hasProgress ? 'none' : 'flex';
 }
 
-function refreshLeaderboard() {
+function initLeaderboardListener() {
     const list = document.getElementById('leaderboard-container');
     if (!list) return;
-    list.innerHTML = `
-        <div class="p-4 bg-black/60 rounded-xl border border-primary/20">
-            <p class="text-xs text-primary uppercase font-bold mb-3">Identity Sync</p>
-            <div class="flex items-center gap-4 mb-4">
-                <img src="${currentUser?.photoURL || ''}" class="w-10 h-10 rounded-full border border-primary/40">
-                <div>
-                    <p class="text-slate-100 font-bold">${currentTeam || 'UNSET'}</p>
-                    <p class="text-slate-500 text-[10px] font-mono">${currentUser?.email || 'OFFLINE'}</p>
+
+    window.db.collection('teams').orderBy('solvedCount', 'desc').onSnapshot(snapshot => {
+        list.innerHTML = "";
+        if (snapshot.empty) {
+            list.innerHTML = '<div class="text-center text-primary/50 text-sm py-4">No agents deployed yet</div>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const team = doc.data();
+            const isMe = currentUser && team.uid === currentUser.uid;
+
+            const card = document.createElement('div');
+            card.className = `p-3 rounded-lg border flex items-center justify-between transition-all ${isMe ? 'bg-primary/20 border-primary shadow-[0_0_10px_rgba(255,59,48,0.3)]' : 'bg-black/40 border-primary/20 hover:border-primary/40'}`;
+
+            card.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <img src="${team.photoURL || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full border border-primary/40">
+                    <div>
+                        <p class="text-slate-100 font-bold text-sm uppercase">${team.teamName}</p>
+                        <p class="text-[10px] text-slate-500 font-mono">${team.email || 'Anonymous'}</p>
+                    </div>
                 </div>
-            </div>
-            <div class="flex justify-between items-center pt-3 border-t border-primary/10">
-                <span class="text-primary font-mono text-sm">TOTAL PROGRESS</span>
-                <span class="text-slate-100 font-bold">${solvedClues.length} NODES</span>
-            </div>
-        </div>
-    `;
+                <div class="text-right">
+                    <p class="text-primary font-bold text-lg leading-tight">${team.solved?.length || 0}</p>
+                    <p class="text-[8px] text-primary/60 font-mono uppercase">Nodes Found</p>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    });
 }
 
 function startScanner() {

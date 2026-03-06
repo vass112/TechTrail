@@ -14,5 +14,6 @@ const firebaseConfig = {
 if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     window.auth = firebase.auth();
+    window.db = firebase.firestore();
     window.googleProvider = new firebase.auth.GoogleAuthProvider();
 }
