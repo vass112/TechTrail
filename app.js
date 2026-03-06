@@ -161,9 +161,23 @@ function initUI() {
     document.getElementById('btn-logout').addEventListener('click', () => {
         if (confirm("Sign out of TechTrail?")) {
             isAdmin = false;
+            adminTapCount = 0;
             window.auth.signOut();
         }
     });
+
+    // Admin Close
+    const btnCloseAdmin = document.getElementById('btn-close-admin');
+    if (btnCloseAdmin) {
+        btnCloseAdmin.addEventListener('click', () => {
+            isAdmin = false;
+            adminTapCount = 0;
+            const adminTrigger = document.getElementById('admin-trigger');
+            if (adminTrigger) adminTrigger.innerText = "OR ADMIN ACCESS";
+            document.getElementById('admin-section').classList.add('hidden');
+            switchView('view-login');
+        });
+    }
 
     document.getElementById('btn-save-clues').addEventListener('click', () => {
         try {
@@ -208,6 +222,13 @@ function initUI() {
 }
 
 function switchView(viewId) {
+    // SECURITY GUARD: Prevents Admins from entering game views
+    const gameViews = ['view-home', 'view-scanner', 'view-clue', 'view-setup-team'];
+    if (isAdmin && gameViews.includes(viewId)) {
+        console.warn("ADMIN ATTEMPTED TO ENTER GAME VIEW - BLOCKED");
+        return;
+    }
+
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
 }
