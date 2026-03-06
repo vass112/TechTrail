@@ -7,10 +7,16 @@ let solvedClues = [];
 // Local Storage Keys - Fallbacks only
 const getStorageKey = (uid, type) => `techtrail_${uid}_${type}`;
 const DEFAULT_CLUES = {
-    "CLUE1": "WELCOME TO TECHTRAIL. PROCEED TO THE OLD OAK TREE.",
-    "CLUE2": "THE GEARS OF PROGRESS TURN IN THE MAIN HALLWAY.",
-    "CLUE3": "KNOWLEDGE IS POWER. VISIT THE LIBRARY ENTRANCE.",
-    "CLUE4": "THE FINAL CHALLENGE AWAITS AT THE NORTH GATE."
+    "CLUE1": "Every kingdom has a guardian, The first eyes that see every visitor. No one enters without their watchful gaze. Find the protector of the campus gate. Speak the password: 'Sentinel'",
+    "CLUE2": "In silence he sits with folded hands, Watching the chaos of the world calmly. Wisdom carved in stone stands before the great block of knowledge. Seek the enlightened one.",
+    "CLUE3": "Opposite the calm sits power and authority, Where wheels rest before journeys begin. A place reserved for the captain of the campus. Find where the leader parks their chariot.",
+    "CLUE4": "After knowledge comes hunger, After lectures comes laughter. The aroma of spices fills the air, And students gather like bees to nectar. Follow the smell of food.",
+    "CLUE5": "Books whisper louder than voices, Knowledge sleeps between endless pages. Posters hide secrets on silent walls. Seek the house of wisdom beside this feast. Password: 'Knowledge is Power'",
+    "CLUE6": "Not stairs but a moving cage, Carrying minds between levels of learning. Inside the home of computers and code, A vertical journey awaits. Find the mechanical climber in Homi J Bhabha Block.",
+    "CLUE7": "Back and forth I travel through air, Laughter once pushed me high. But now seek a creature who guards the waste, A playful face that swallows trash. He sits watching hungry engineers nearby.",
+    "CLUE8": "From playful creatures to machines of war, Iron once rolled where soldiers stood proud. A silent warrior now rests nearby, Watching students instead of battlefields. Seek the armored giant beside the court of hoops.",
+    "CLUE9": "You have crossed knowledge, food, machines and play, Yet the journey ends where every visitor begins. Return to the heart of the Main Block Reception.",
+    "CLUE10": "🏆 Congratulations, Explorers! From the guardian of the gate to wisdom in stone, from machines and battle steel... You have unlocked every clue of the campus. The treasure belongs to those who seek, think, and never give up!"
 };
 
 let localCluesCache = DEFAULT_CLUES;
