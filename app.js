@@ -41,25 +41,53 @@ async function initAuth() {
     const urlParams = new URLSearchParams(window.location.search);
     const externalClue = urlParams.get('clue');
     if (externalClue && localCluesCache[externalClue]) {
-        // Unlock body scroll — overflow-hidden blocks content on mobile
-        document.body.classList.remove('overflow-hidden');
-        document.body.classList.add('overflow-y-auto');
-        const appEl = document.getElementById('app');
-        if (appEl) {
-            appEl.classList.remove('overflow-hidden', 'h-screen');
-            appEl.classList.add('overflow-y-auto', 'min-h-screen');
-        }
+        const clueText = localCluesCache[externalClue];
+        const clueNum = externalClue.replace('CLUE', '');
+        // Replace entire body — bypasses all app overflow/height constraints
+        document.body.innerHTML = `
+            <div style="
+                font-family: 'Courier New', monospace;
+                background: #0d0d0d;
+                min-height: 100vh;
+                color: #f1f1f1;
+                padding: 32px 24px 48px;
+                box-sizing: border-box;
+                overflow-y: auto;
+            ">
+                <div style="max-width: 480px; margin: 0 auto;">
+                    <p style="color: #ff3b30; letter-spacing: 0.3em; font-size: 11px; text-transform: uppercase; margin: 0 0 8px;">TechTrail · Node ${clueNum}</p>
+                    <h1 style="color: #ff3b30; font-size: 28px; margin: 0 0 4px; letter-spacing: 0.05em;">CLUE ${clueNum}</h1>
+                    <p style="color: #ff3b3060; font-size: 11px; letter-spacing: 0.2em; margin: 0 0 32px; text-transform: uppercase;">Signal Decrypted</p>
 
-        // Show a standalone clue page — no login needed
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        const clueView = document.getElementById('view-clue');
-        clueView.classList.add('active');
-        clueView.style.height = 'auto';
-        clueView.style.minHeight = '100dvh';
-        displayClue(externalClue, localCluesCache[externalClue]);
-        // Clean up URL so it doesn't persist on refresh
-        window.history.replaceState({}, '', window.location.pathname + window.location.hash);
-        return; // Don't continue auth setup
+                    <div style="
+                        background: rgba(255,59,48,0.05);
+                        border: 1px solid rgba(255,59,48,0.25);
+                        border-radius: 12px;
+                        padding: 24px;
+                        margin-bottom: 28px;
+                    ">
+                        <p style="
+                            font-size: 16px;
+                            line-height: 1.9;
+                            color: #e0e0e0;
+                            margin: 0;
+                            white-space: pre-wrap;
+                            word-break: break-word;
+                        ">${clueText}</p>
+                    </div>
+
+                    <p style="
+                        color: #555;
+                        font-size: 11px;
+                        text-align: center;
+                        letter-spacing: 0.15em;
+                        text-transform: uppercase;
+                    ">Powered by TechTrail · Sign in to track progress</p>
+                </div>
+            </div>
+        `;
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
     }
 
     window.auth.onAuthStateChanged(user => {
@@ -358,10 +386,15 @@ function onScanSuccess(decodedText) {
 function onScanFailure(error) { }
 
 function displayClue(id, text) {
-    document.getElementById('clue-id-display').innerText = id + " SECURED";
-    const morse = window.MorseSynth.translateToMorse(text);
-    document.getElementById('morse-display').innerText = morse;
-    document.getElementById('morse-display').dataset.morse = morse;
+    document.getElementById('clue-id-display').innerText = id + " UNLOCKED";
+    // Show plain clue text — no more morse encoding
+    const display = document.getElementById('morse-display');
+    display.innerText = text;
+    display.style.fontSize = '16px';
+    display.style.letterSpacing = '0';
+    display.style.lineHeight = '1.8';
+    display.style.textAlign = 'left';
+    display.dataset.morse = window.MorseSynth ? window.MorseSynth.translateToMorse(text) : '';
 }
 
 function playMorseAudio() {
