@@ -176,19 +176,16 @@
                     </button>
                 </div>
                 <div class="px-6 mb-12">
-                    <div
-                        class="p-5 rounded-2xl bg-black/40 border border-primary/10 shadow-[inset_0_0_20px_rgba(0,0,0,0.4)]">
-                        <h4 class="text-primary font-bold mb-3 flex items-center gap-2">
-                            <span class="material-symbols-outlined">info</span> How to Play
+                    <!-- Live Leaderboard for Teams -->
+                    <div class="mb-4">
+                        <h4
+                            class="text-primary font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-widest">
+                            <span class="material-symbols-outlined text-base">leaderboard</span> Live Leaderboard
+                            <span class="ml-auto w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         </h4>
-                        <ul class="space-y-3 text-sm text-slate-300">
-                            <li class="flex gap-3"><span class="text-primary font-bold">01</span><span>Find hidden QR
-                                    codes across campus using Morse hints.</span></li>
-                            <li class="flex gap-3"><span class="text-primary font-bold">02</span><span>Scan them to
-                                    unlock the next part of the trail.</span></li>
-                            <li class="flex gap-3"><span class="text-primary font-bold">03</span><span>Complete all 8
-                                    clues to finish the TechTrail!</span></li>
-                        </ul>
+                        <div id="home-leaderboard-container" class="space-y-2">
+                            <div class="text-center text-primary/40 text-xs font-mono py-4">LOADING AGENTS...</div>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -411,7 +408,7 @@
 
     <!-- Scripts -->
     <script src="morse.js"></script>
-    <script src="app.js?v=2.0.0&t=20260306"></script>
+    <script src="app.js?v=2.0.1&t=20260306"></script>
 </body>
 
 </html>

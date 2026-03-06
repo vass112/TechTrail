@@ -113,6 +113,7 @@ function checkTeamRegistration() {
             currentTeam = data.teamName;
             solvedClues = data.solved || [];
             updateProgressUI();
+            initHomeLeaderboardListener(); // Start live leaderboard for teams
             switchView('view-home');
         } else {
             document.getElementById('user-name').innerText = currentUser.displayName || 'Agent';
@@ -122,6 +123,43 @@ function checkTeamRegistration() {
     }).catch(err => {
         console.error("Team check failed:", err);
         document.getElementById('login-error').innerText = "CONNECTION ERROR - CHECK DB RULES";
+    });
+}
+
+function initHomeLeaderboardListener() {
+    const list = document.getElementById('home-leaderboard-container');
+    if (!list || !window.db) return;
+
+    window.db.collection('teams').onSnapshot(snapshot => {
+        list.innerHTML = "";
+        if (snapshot.empty) {
+            list.innerHTML = '<div class="text-center text-primary/40 text-xs font-mono py-4">NO AGENTS YET</div>';
+            return;
+        }
+
+        const teams = [];
+        snapshot.forEach(doc => teams.push(doc.data()));
+        teams.sort((a, b) => (b.solvedCount || 0) - (a.solvedCount || 0));
+
+        teams.forEach((team, index) => {
+            const isMe = currentUser && team.uid === currentUser.uid;
+            const rankEmojis = ['🥇', '🥈', '🥉'];
+            const rank = rankEmojis[index] || `#${index + 1}`;
+            const card = document.createElement('div');
+            card.className = `flex items-center justify-between px-3 py-2 rounded-lg border transition-all ${isMe
+                ? 'bg-primary/15 border-primary/50 shadow-[0_0_8px_rgba(255,59,48,0.2)]'
+                : 'bg-black/30 border-primary/10'}`;
+            card.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="text-lg w-6 text-center">${rank}</span>
+                    <span class="text-slate-100 font-bold text-sm uppercase">${team.teamName}${isMe ? ' <span class="text-primary/60 font-normal text-xs normal-case">(you)</span>' : ''}</span>
+                </div>
+                <span class="text-primary font-bold text-sm">${team.solvedCount || 0} <span class="text-primary/40 font-normal text-xs">clues</span></span>
+            `;
+            list.appendChild(card);
+        });
+    }, err => {
+        list.innerHTML = '<div class="text-center text-red-400/60 text-xs font-mono py-2">UPDATE FIRESTORE RULES</div>';
     });
 }
 
